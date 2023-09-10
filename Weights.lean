@@ -22,7 +22,7 @@ given by sending $a \in J_{n,d}$ to
 $\max\Bigl\{0, \Bigl\lfloor\frac{d \Sigma w}{n+1}\Bigr\rfloor - \langle a, w \rangle\Bigr\}$
 (where $\Sigma w$ denotes the sum of the entries of $w$). See `Weight.f`.
 
-Then we say that a weight $w$ *dominates* another weight $w'$ if $f_w \le w_{w'}$
+Then we say that a weight $w$ *dominates* another weight $w'$ if $f_w \le f_{w'}$
 point-wise. In this file, we write `w ≤d w'` for this relation. `≤d` is a pre-order
 on the Set of weights, but not a (partial) order. For example, a weight $w$
 and $w + k \mathbf{1}$ dominate each other for each natural number $k$.
