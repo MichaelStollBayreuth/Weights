@@ -5,7 +5,7 @@ import Mathlib.Data.Fin.Tuple.BubbleSortInduction
 import Mathlib.Data.DFinsupp.WellFounded
 
 /-!
-# Formalize some of the theory of weights
+# Formalize some parts of the theory of weights
 
 This is code formalizing some of the results in the paper
 "Minimization of hypersurfaces"
@@ -64,14 +64,19 @@ def Weight (n _d : ℕ) : Type := Fin n.succ → ℕ
 
 namespace Weight
 
-instance One (n d : ℕ) : One (Weight n d) := ⟨fun _ ↦ 1⟩
+-- Derive the necessary instances manually
+protected instance One (n d : ℕ) : One (Weight n d) := ⟨fun _ ↦ 1⟩
 
-instance AddCommMonoid (n d : ℕ) : AddCommMonoid (Weight n d) := by
-  unfold Weight; exact inferInstance
+protected instance AddCommMonoid (n d : ℕ) : AddCommMonoid (Weight n d) := by
+  unfold Weight; infer_instance
 
 open BigOperators
 
 variable {n d : ℕ} [NeZero d] -- fix dimension and (positive) degree
+
+/-!
+### Some boilerplate `simp` and `ext` lemmas
+-/
 
 @[simp] lemma add_apply (w w' : Weight n d) (i : Fin n.succ) : (w + w') i = w i + w' i := rfl
 
@@ -81,11 +86,7 @@ variable {n d : ℕ} [NeZero d] -- fix dimension and (positive) degree
 
 @[simp] lemma zero_apply (i : Fin n.succ) : (0 : Weight n d) i = 0 := rfl
 
-@[ext] lemma ext {w w' : Weight n d} (h : ∀ i, w i = w' i) : w = w' := by
-  unfold Weight
-  ext i
-  exact h i
-  done
+@[ext] lemma ext {w w' : Weight n d} (h : ∀ i, w i = w' i) : w = w' := funext h
 
 /-!
 ### Permutations of weights
