@@ -10,9 +10,9 @@ We index the entries from $0$ to $n$. See `Weight`.
 
 We can then compare weights in the following way. We first define $J_{n,d}$
 to be the Set of $(n+1)$-tuples of natural numbers whose sum is $d$ (`Weight.testvecs n d`).
-Then to a weight $w$, we associate the map $f_w \colon J_{n,d} \to \mathbb{Z}_{\ge 0}$
+Then to a weight $w$, we associate the map $f_w \colon J_{n,d} \to \mathbb{Z}\_{\ge 0}$
 given by sending $a \in J_{n,d}$ to
-$$\max\Bigl\\{0, \Bigl\lfloor\frac{d \Sigma w}{n+1}\Bigr\rfloor - \langle a, w \rangle\Bigr\\}$$
+$$\max\Bigl\\{0, \Bigl\lfloor\frac{d \, \Sigma w}{n+1}\Bigr\rfloor - \langle a, w \rangle\Bigr\\}$$
 (where $\Sigma w$ denotes the sum of the entries of $w$). See `Weight.f`.
 
 Then we say that a weight $w$ *dominates* another weight $w'$ if $f_w \le w_{w'}$
