@@ -17,7 +17,7 @@ $$\max\Bigl\\{0, \Bigl\lfloor\frac{d \, \Sigma w}{n+1}\Bigr\rfloor - \langle a, 
 
 Then we say that a weight $w$ *dominates* another weight $w'$ if $f_w \le f_{w'}$
 point-wise. In this file, we write `w ≤d w'` for this relation. `≤d` is a pre-order
-on the Set of weights, but not a (partial) order. For example, a weight $w$
+on the set of weights, but not a (partial) order. For example, a weight $w$
 and $w + k \mathbf{1}$ dominate each other for each natural number $k$.
 We can therefore restrict to weights whose minimal entry is zero.
 
@@ -27,15 +27,15 @@ some weight $w'$, then it also dominates the increasing permutation of $w'$
 (`Weight.dom_of_dom_perm`). So up to permutations, it suffices to consider
 only normalized weights.
 
-We say that a Set $S$ of normalized weights is *complete* if every normalized
+We say that a set $S$ of normalized weights is *complete* if every normalized
 weight is dominated by an element of $S$ (`Weight.complete_set`). We say that a complete
-Set of weights is *minimal* if it is minimal with respect to inclusion among complete sets
-(`Weight.minimal_complete_set`). This is Equivalent to saying that when $w$ and $w'$ are
+set of weights is *minimal* if it is minimal with respect to inclusion among complete sets
+(`Weight.minimal_complete_set`). This is equivalent to saying that when $w$ and $w'$ are
 in $S$ and $w$ dominates $w'$, then $w = w'$.
 
 The main result of this file is that there is a *unique* minimal complete set
-of weights, which is given by the Set `M n d` of all normalized weights that are minimal
-elements with respect to domination within the Set of all normalized weights.
+of weights, which is given by the set `M n d` of all normalized weights that are minimal
+elements with respect to domination within the set of all normalized weights.
 See `Weight.M_is_minimal` and `Weight.M_is_unique`.
 
 We show in addition that the entries of nonzero elements of `M n d` are coprime
