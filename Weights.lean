@@ -3,12 +3,13 @@ import Mathlib.Algebra.GCDMonoid.Finset
 import Mathlib.RingTheory.Int.Basic
 import Mathlib.Data.Fin.Tuple.BubbleSortInduction
 import Mathlib.Data.DFinsupp.WellFounded
+import Mathlib.Tactic
 
 /-!
 # Formalize some parts of the theory of weights
 
 This is code formalizing some of the results in the paper
-"Minimization of hypersurfaces"
+[*Minimization of hypersurfaces*](https://www.mathe2.uni-bayreuth.de/stoll/schrift.html#AG69)
 by Andreas-Stephan Elsenhans and Michael Stoll.
 
 The paper introduces the notion of a *weight* on forms of degree $d$
@@ -1068,5 +1069,134 @@ lemma w1_unique {n : ℕ} [NeZero n] {w : Weight n 1} (hw : w 0 = 0)
   rw [hn]
   exact sum_w1 n
   done
+
+/-!
+### Dimension 2
+
+We attempt a formalization of Theorem 1.6 in the paper, which says that in the case `n = 2`,
+the weights in a minimal complete set of weight vectors have entries bounded by `d`.
+-/
+
+/-- A *basic interval* is an interval `[a₁/b₁, a₂/b₂]` whose endpoints are nonnegative
+rational numbers (or `∞ = 1/0`) such that `a₂ b₁ - a₁ b₂ = 1`. 
+Such an interval can be obtained by starting from `[0/1, 1/0]` and successively splitting
+an interval `[a₁/b₁, a₂/b₂]` into the two intervals `[a₁/b₁, (a₁+a₂)/(b₁+b₂)]` and
+`[(a₁+a₂)/(b₁+b₂), a₂/b₂]`-/
+inductive BasicInterval
+| base : BasicInterval
+| left (_ : BasicInterval) : BasicInterval
+| right (_ : BasicInterval) : BasicInterval
+
+/- structure BasicInterval where
+  a₁ : ℕ
+  b₁ : ℕ
+  a₂ : ℕ
+  b₂ : ℕ
+  rel : a₂ * b₁ = a₁ * b₂ + 1 -/
+
+namespace BasicInterval
+
+/-! Compute the endpoint data and prove the relation. -/
+def data : BasicInterval → (ℕ × ℕ) × (ℕ × ℕ)
+| base     => ((0, 1), (1, 0))
+| left I'  => let ((a₁, b₁), (a₂, b₂)) := I'.data
+              ((a₁, b₁), (a₁ + a₂, b₁ + b₂))
+| right I' => let ((a₁, b₁), (a₂, b₂)) := I'.data
+              ((a₁ + a₂, b₁ + b₂), (a₂, b₂))
+
+def a₁ (I : BasicInterval) : ℕ := I.data.1.1
+
+def b₁ (I : BasicInterval) : ℕ := I.data.1.2
+
+def a₂ (I : BasicInterval) : ℕ := I.data.2.1
+
+def b₂ (I : BasicInterval) : ℕ := I.data.2.2
+
+-- Boilerplate
+@[simp] lemma base_a₁ : base.a₁ = 0 := rfl
+
+@[simp] lemma base_b₁ : base.b₁ = 1 := rfl
+
+@[simp] lemma base_a₂ : base.a₂ = 1 := rfl
+
+@[simp] lemma base_b₂ : base.b₂ = 0 := rfl
+
+@[simp] lemma left_a₁ (I : BasicInterval) : (left I).a₁ = I.a₁ := rfl
+
+@[simp] lemma left_b₁ (I : BasicInterval) : (left I).b₁ = I.b₁ := rfl
+
+@[simp] lemma left_a₂ (I : BasicInterval) : (left I).a₂ = I.a₁ + I.a₂ := rfl
+
+@[simp] lemma left_b₂ (I : BasicInterval) : (left I).b₂ = I.b₁ + I.b₂ := rfl
+
+@[simp] lemma right_a₁ (I : BasicInterval) : (right I).a₁ = I.a₁ + I.a₂ := rfl
+
+@[simp] lemma right_b₁ (I : BasicInterval) : (right I).b₁ = I.b₁ + I.b₂ := rfl
+
+@[simp] lemma right_a₂ (I : BasicInterval) : (right I).a₂ = I.a₂ := rfl
+
+@[simp] lemma right_b₂ (I : BasicInterval) : (right I).b₂ = I.b₂ := rfl
+
+
+lemma rel : (I : BasicInterval) → I.a₂ * I.b₁ = I.a₁ * I.b₂ + 1
+| base     => by simp
+| left I'  => by simp [add_mul, mul_add, I'.rel, add_assoc]
+| right I' => by simp [add_mul, mul_add, I'.rel, add_assoc, add_comm]
+
+/-- A fraction `a/b` lies in the basic interval `I`. -/
+def mem (a b : ℕ) (I : BasicInterval) : Prop := b * I.a₁ ≤ a * I.b₁ ∧ a * I.b₂ ≤ b * I.a₂
+
+lemma mem_left (a b : ℕ) (I : BasicInterval) (h : mem a b I.left) : mem a b I := by
+  obtain ⟨h₁, h₂⟩ := h
+  simp at h₁ h₂
+  exact ⟨h₁, by linarith⟩
+  done
+
+lemma mem_right (a b : ℕ) (I : BasicInterval) (h : mem a b I.right) : mem a b I := by
+  obtain ⟨h₁, h₂⟩ := h
+  simp at h₁ h₂
+  exact ⟨by linarith, h₂⟩
+  done
+
+/-- A fraction `a/b` that lies in a basic interval `[a₁/b₁, a₂/b₂]` satisfies
+`a = k₁ a₁ + k₂ a₂` and `b = k₁ b₁ + k₂ b₂` for some natural numbers `k₁` and `k₂`. -/
+lemma exists_of_mem (I : BasicInterval) (a b : ℕ) (h : mem a b I) :
+    ∃ k₁ k₂ : ℕ, a = k₁ * I.a₁ + k₂ * I.a₂ ∧ b = k₁ * I.b₁ + k₂ * I.b₂ := by
+  induction I with
+  | base       => simp
+  | left I ih  =>
+    obtain ⟨k₁', k₂, H₁, H₂⟩ := ih (mem_left a b I h)
+    simp
+    have ⟨k₁, hk⟩ : ∃ k, k₁' = k + k₂ := by
+      rw [← le_iff_exists_add']
+      obtain ⟨_, h₂⟩ := h
+      simp [H₁, H₂, add_mul, mul_add] at h₂
+      have rel := I.rel
+      zify at h₂ rel ⊢
+      rw [← sub_nonneg] at h₂ ⊢
+      convert h₂ using 1
+      linear_combination (k₂ - k₁') * rel
+      done
+    rw [hk] at H₁ H₂
+    refine ⟨k₁, k₂, ?_, ?_⟩ <;> linarith
+    done
+  | right I ih =>
+    obtain ⟨k₁, k₂', H₁, H₂⟩ := ih (mem_right a b I h)
+    simp
+    have ⟨k₂, hk⟩ : ∃ k, k₂' = k + k₁ := by
+      rw [← le_iff_exists_add']
+      obtain ⟨h₁, _⟩ := h
+      simp [H₁, H₂, add_mul, mul_add] at h₁
+      have rel := I.rel
+      zify at h₁ rel ⊢
+      rw [← sub_nonneg] at h₁ ⊢
+      convert h₁ using 1
+      linear_combination (k₁ - k₂') * rel
+      done
+    rw [hk] at H₁ H₂
+    refine ⟨k₁, k₂, ?_, ?_⟩ <;> linarith
+    done
+
+end BasicInterval
 
 end Weight
