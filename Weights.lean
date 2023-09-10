@@ -204,8 +204,8 @@ lemma pair_swap_eq (w a : Weight n d) (i j : Fin n.succ) :
 ### Test vectors
 -/
 
-/-- We define the Set of *test vectors* of dimension `n` and degree `d` to be the
-Set of weights whose sum is `d`. -/
+/-- We define the set of *test vectors* of dimension `n` and degree `d` to be the
+set of weights whose sum is `d`. -/
 def testvecs (n d : ℕ) [NeZero d] : Set (Weight n d) := {w | w.sum = d}
 
 lemma pair_shift (a : testvecs n d) (k : ℕ) : (k • (1 : Weight n d)).pair a = k * d := by
@@ -224,7 +224,7 @@ lemma tv_finset : ((Finset.Nat.antidiagonalTuple n.succ d) :
   rfl
   done
 
-/-- The Set of test vectors is closed under permutation. -/
+/-- The set of test vectors is closed under permutation. -/
 lemma testvecs_perm {a : Weight n d} (ha : a ∈ testvecs n d) (σ : Equiv.Perm (Fin n.succ)) :
     a.comp σ ∈ testvecs n d := by simpa only [testvecs, sum_perm, Set.mem_setOf_eq]
 
@@ -292,7 +292,7 @@ lemma one_le_E (w : Weight n d) : 1 ≤ w.E := by simp only [E, le_add_iff_nonne
 (Here we use that `-` is truncated subtraction: `a - b = 0` when `a ≤ b`. ) -/
 def f (w : Weight n d) (a : testvecs n d) : ℕ := w.E - (pair w a)
 
--- The Set of maps from test vectors to `ℕ` inherits a partial order, which is defined point-wise.
+-- The set of maps from test vectors to `ℕ` inherits a partial order, which is defined point-wise.
 example : PartialOrder (testvecs n d → ℕ) := inferInstance
 
 @[simp] lemma f_le_iff (w w' : Weight n d) :
@@ -342,7 +342,7 @@ lemma f_le_mul (w : Weight n d) (k : ℕ) : w.f ≤ (k.succ • w).f := by
 ### Domination
 -/
 
-/-- Define `w ≤d w'` if `w` dominates `w'`. This is Equivalent to `f w ≤ f w'`
+/-- Define `w ≤d w'` if `w` dominates `w'`. This is equivalent to `f w ≤ f w'`
 in the product order. -/
 protected instance Preorder : Preorder (Weight n d) := Preorder.lift f
 
@@ -352,9 +352,7 @@ instance fintype_tv : Fintype (testvecs n d) := by
   simp only [Finset.mem_coe]
   done
 
--- instance {α : Type*} [Fintype α] : IsWellFounded (α → ℕ) (· < ·) := inferInstance
-
-lemma codom_f_well_founded : IsWellFounded (testvecs n d → ℕ) (· < ·) := inferInstance
+lemma codom_f_well_founded : WellFoundedLT (testvecs n d → ℕ) := inferInstance
 
 instance well_founded : IsWellFounded (Weight n d) (· < ·) := ⟨InvImage.wf f codom_f_well_founded.1⟩
 
@@ -579,7 +577,7 @@ lemma trunc_balanced {w : Weight n d} (hE : w.trunc.E = w.E) : w.trunc.balanced 
 We show that two weights with first entry `0` that are both minimal with respect to domination
 and dominate each other must be equal.
 
-This implies that there is a unique minimal complete Set of normalized weights
+This implies that there is a unique minimal complete set of normalized weights
 for each dimension `n` and degree `d`; see below.
 -/
 
@@ -685,7 +683,7 @@ lemma balanced_of_min {w : Weight n d} (hw : w 0 = 0) (hmin : ∀ u, u ≤d w �
   by_contra hb
   obtain ⟨hE', hb', hc, hne⟩ :=
     exists_balanced_ltc w hb (E_trunc_eq_E_of_dom (hmin _ (trunc_dom w)) hw) hw
-  -- We use that `≤d` is Equivalent to `≥c` under suitable assumptions.
+  -- We use that `≤d` is equivalent to `≥c` under suitable assumptions.
   exact hne (lec_antisymm hc <| (dom_iff_gec_of_balanced (trunc_zero hw) hb' hE'.symm).mp <|
               (trunc_dom w).trans <| hmin _  <| (dom_of_gec hE' hc).trans $ trunc_dom w)
   done
@@ -699,7 +697,7 @@ lemma balanced_of_min' {w : Weight n d} (hw : w.normalized)
   obtain ⟨hE', hb', hc, hne⟩ := 
     exists_balanced_ltc w hb
       (E_trunc_eq_E_of_dom (hmin _ (trunc_normalized hw).2 (trunc_dom w)) hw.1) hk₁
-  -- We use that `≤d` is Equivalent to `≥c` under suitable assumptions.
+  -- We use that `≤d` is equivalent to `≥c` under suitable assumptions.
   refine hne (lec_antisymm hc <| (dom_iff_gec_of_balanced (trunc_normalized hw).1 hb' hE'.symm).mp <|
               (trunc_dom w).trans <| hmin _ ?_ <| (dom_of_gec hE' hc).trans (trunc_dom w))
   intro i j hij
@@ -821,21 +819,21 @@ lemma dom_of_dom_perm' {w w' : Weight n d} (hw' : Monotone w') (hd : w ≤d w') 
 ### Minimal complete sets of weight vectors
 -/
 
-/-- We define a Set `S` of weight vectors to be *complete* if every normalized weight vector
+/-- We define a set `S` of weight vectors to be *complete* if every normalized weight vector
 is dominated by some `w ∈ S`. (By `dom_of_dom_perm`, this is equivalent to saying that some
 permutation of every weight vector is dominated by some element of `S`. ) -/
 def complete_set (S : Set (Weight n d)) : Prop :=
   ∀ w : Weight n d, w.normalized → ∃ w' ∈ S, w' ≤d w
 
-/-- A complete Set `S` of weight vectors is *minimal* if no element of `S` dominates another. -/
+/-- A complete set `S` of weight vectors is *minimal* if no element of `S` dominates another. -/
 def minimal_complete_set (S : Set (Weight n d)) : Prop :=
   complete_set S ∧ ∀ w₁ w₂, w₁ ∈ S → w₂ ∈ S → w₁ ≤d w₂ → w₁ = w₂
 
-/-- We define `M` to be the Set of all minimal normalized weight vectors. -/
+/-- We define `M` to be the set of all minimal normalized weight vectors. -/
 def M (n d : ℕ) [NeZero d] : Set (Weight n d) :=
   {w | w.normalized ∧ ∀ w', normalized w' → w' ≤d w → w ≤d w'}
 
-/-- The Set of all minimal normalized weight vectors is complete. -/
+/-- The set of all minimal normalized weight vectors is complete. -/
 lemma M_is_complete : complete_set (M n d) := by
   intro w
   refine WellFoundedLT.induction (α := Weight n d)
@@ -860,11 +858,11 @@ lemma eq_of_dom_in_M {w w' : Weight n d} (hw : w.normalized) (hd : w ≤d w') (h
     w = w' :=
   (eq_of_dom_and_min' hM.1 hw hd hM.2).symm
 
-/-- The Set of all minimal normalized weight vectors is a minimal complete set. -/
+/-- The set of all minimal normalized weight vectors is a minimal complete set. -/
 lemma M_is_minimal : minimal_complete_set (M n d) :=
   ⟨M_is_complete, fun ?w₁ ?w₂ hw₁ hw₂ h₁ ↦ eq_of_dom_in_M hw₁.1 h₁ hw₂⟩
 
-/-- If `S` is a minimal complete Set of normalized weight vectors, then `S = M n d`. -/
+/-- If `S` is a minimal complete set of normalized weight vectors, then `S = M n d`. -/
 lemma M_is_unique {S : Set (Weight n d)} (hS₁ : ∀ w ∈ S, normalized w)
   (hS₂ : minimal_complete_set S) :
     S = M n d := by
