@@ -1146,17 +1146,31 @@ lemma rel : (I : BasicInterval) → I.a₂ * I.b₁ = I.a₁ * I.b₂ + 1
 /-- A fraction `a/b` lies in the basic interval `I`. -/
 def mem (a b : ℕ) (I : BasicInterval) : Prop := b * I.a₁ ≤ a * I.b₁ ∧ a * I.b₂ ≤ b * I.a₂
 
-lemma mem_left (a b : ℕ) (I : BasicInterval) (h : mem a b I.left) : mem a b I := by
+lemma mem_of_mem_left {a b : ℕ} (I : BasicInterval) (h : mem a b I.left) : mem a b I := by
   obtain ⟨h₁, h₂⟩ := h
   simp at h₁ h₂
   exact ⟨h₁, by linarith⟩
   done
 
-lemma mem_right (a b : ℕ) (I : BasicInterval) (h : mem a b I.right) : mem a b I := by
+lemma mem_of_mem_right {a b : ℕ} (I : BasicInterval) (h : mem a b I.right) : mem a b I := by
   obtain ⟨h₁, h₂⟩ := h
   simp at h₁ h₂
   exact ⟨by linarith, h₂⟩
   done
+
+lemma mem_left_or_mem_right {a b : ℕ} (I : BasicInterval) (h : mem a b I) :
+    mem a b I.left ∨ mem a b I.right := by
+  by_cases hl : mem a b I.left
+  · exact Or.inl hl
+    done
+  · unfold mem at h hl ⊢
+    rw [@not_and_or] at hl
+    cases' hl with hl hl <;> push_neg at hl <;> simp at hl ⊢
+    · exact Or.inl ⟨h.1, by linarith⟩
+      done
+    · refine Or.inr ⟨hl.le, h.2⟩
+      done
+    
 
 /-- A fraction `a/b` that lies in a basic interval `[a₁/b₁, a₂/b₂]` satisfies
 `a = k₁ a₁ + k₂ a₂` and `b = k₁ b₁ + k₂ b₂` for some natural numbers `k₁` and `k₂`. -/
@@ -1165,7 +1179,7 @@ lemma exists_of_mem (I : BasicInterval) (a b : ℕ) (h : mem a b I) :
   induction I with
   | base       => simp
   | left I ih  =>
-    obtain ⟨k₁', k₂, H₁, H₂⟩ := ih (mem_left a b I h)
+    obtain ⟨k₁', k₂, H₁, H₂⟩ := ih (mem_of_mem_left I h)
     simp
     have ⟨k₁, hk⟩ : ∃ k, k₁' = k + k₂ := by
       rw [← le_iff_exists_add']
@@ -1181,7 +1195,7 @@ lemma exists_of_mem (I : BasicInterval) (a b : ℕ) (h : mem a b I) :
     refine ⟨k₁, k₂, ?_, ?_⟩ <;> linarith
     done
   | right I ih =>
-    obtain ⟨k₁, k₂', H₁, H₂⟩ := ih (mem_right a b I h)
+    obtain ⟨k₁, k₂', H₁, H₂⟩ := ih (mem_of_mem_right I h)
     simp
     have ⟨k₂, hk⟩ : ∃ k, k₂' = k + k₁ := by
       rw [← le_iff_exists_add']
@@ -1197,6 +1211,47 @@ lemma exists_of_mem (I : BasicInterval) (a b : ℕ) (h : mem a b I) :
     refine ⟨k₁, k₂, ?_, ?_⟩ <;> linarith
     done
 
+/-- A basic interval is *feasible* if it is minimal such that `a₁+b₁, a₂+b₂ ≤ d`. -/
+def feasible (d : ℕ) (I : BasicInterval) : Prop :=
+  I.a₁ + I.b₁ ≤ d ∧ I.a₂ + I.b₂ ≤ d ∧ d < I.a₁ + I.a₂ + I.b₁ + I.b₂
+
+/-- Every fraction `a/b` is contained in some feasible basic interval. -/
+lemma mem_feasible (d a b : ℕ) [i : NeZero d] : ∃ (I : BasicInterval), I.feasible d ∧ mem a b I := by
+  cases d with
+  | zero => simp only [neZero_iff] at i
+  | succ n =>
+    induction' n with n ih
+    · use base
+      simp [base, feasible, mem]
+      done
+    · obtain ⟨I', hf, hm⟩ := ih
+      by_cases h : feasible n.succ.succ I'
+      · exact ⟨I', h, hm⟩
+        done
+      · simp only [feasible] at hf h ⊢
+        simp only [not_and_or, not_le, not_lt] at h
+        rcases h with h | h | h
+        · exfalso; linarith
+        · exfalso; linarith
+        rcases mem_left_or_mem_right I' hm with hm | hm
+        · refine ⟨I'.left, ⟨?_, ?_, ?_⟩, hm⟩ <;> 
+            simp only [left_a₁, left_a₂, left_b₁, left_b₂] <;> linarith
+          done
+        · refine ⟨I'.right, ⟨?_, ?_, ?_⟩, hm⟩ <;> 
+            simp only [right_a₁, right_a₂, right_b₁, right_b₂] <;> linarith
+          done
+
 end BasicInterval
+
+/-- The fraction `a/b`  is an element of `S_≤`. -/
+def mem_S_le (a b : ℕ) : Prop :=
+  ∃ (i₁ i₂ : ℕ), 3 * i₁ + 3 * i₂ ≤ 2 * d ∧ d < 3 * i₂ ∧
+                 a * (3 * i₂ - d) = b * (2 * d - 3 * i₁ - 3 * i₂)
+
+/-- The fraction `a/b` is an element of `S_≥`. -/
+def mem_S_ge (a b : ℕ) : Prop :=
+  ∃ (i₁ i₂ : ℕ), i₁ + i₂ ≤ d ∧ 2 * d < 3 * i₁ + 3 * i₂ ∧ 3 * i₂ ≤ d ∧
+                 a * (3 * i₂ - d) = b * (2 * d - 3 * i₁ - 3 * i₂)
+
 
 end Weight
