@@ -1146,6 +1146,9 @@ lemma rel : (I : BasicInterval) → I.a₂ * I.b₁ = I.a₁ * I.b₂ + 1
 /-- A fraction `a/b` lies in the basic interval `I`. -/
 def mem (a b : ℕ) (I : BasicInterval) : Prop := b * I.a₁ ≤ a * I.b₁ ∧ a * I.b₂ ≤ b * I.a₂
 
+@[simp]
+lemma mem_base (a b : ℕ) : mem a b base := by simp [mem]
+
 lemma mem_of_mem_left {a b : ℕ} (I : BasicInterval) (h : mem a b I.left) : mem a b I := by
   obtain ⟨h₁, h₂⟩ := h
   simp at h₁ h₂
@@ -1215,31 +1218,29 @@ lemma exists_of_mem (I : BasicInterval) (a b : ℕ) (h : mem a b I) :
 def feasible (d : ℕ) (I : BasicInterval) : Prop :=
   I.a₁ + I.b₁ ≤ d ∧ I.a₂ + I.b₂ ≤ d ∧ d < I.a₁ + I.a₂ + I.b₁ + I.b₂
 
+lemma feasible_base : base.feasible 1 := by simp only [feasible, and_self]
+
+lemma feasible_left_or_right {d : ℕ} [NeZero d] {I : BasicInterval} (h : I.feasible d) :
+    I.feasible d.succ ∨ (I.left.feasible d.succ ∧ I.right.feasible d.succ) := by
+  by_cases h' : I.feasible d.succ
+  · exact Or.inl h'
+  · simp only [feasible] at h h' ⊢
+    simp only [not_and_or, not_le, not_lt] at h'
+    rcases h' with _ | _ | _ <;> try exfalso; linarith
+    refine Or.inr ⟨⟨?_, ?_, ?_⟩, ⟨?_, ?_, ?_⟩⟩ <;> simp <;> linarith
+
 /-- Every fraction `a/b` is contained in some feasible basic interval. -/
-lemma mem_feasible (d a b : ℕ) [i : NeZero d] : ∃ (I : BasicInterval), I.feasible d ∧ mem a b I := by
-  cases d with
-  | zero => simp only [neZero_iff] at i
-  | succ n =>
-    induction' n with n ih
-    · use base
-      simp [base, feasible, mem]
-      done
-    · obtain ⟨I', hf, hm⟩ := ih
-      by_cases h : feasible n.succ.succ I'
-      · exact ⟨I', h, hm⟩
-        done
-      · simp only [feasible] at hf h ⊢
-        simp only [not_and_or, not_le, not_lt] at h
-        rcases h with h | h | h
-        · exfalso; linarith
-        · exfalso; linarith
-        rcases mem_left_or_mem_right I' hm with hm | hm
-        · refine ⟨I'.left, ⟨?_, ?_, ?_⟩, hm⟩ <;> 
-            simp only [left_a₁, left_a₂, left_b₁, left_b₂] <;> linarith
-          done
-        · refine ⟨I'.right, ⟨?_, ?_, ?_⟩, hm⟩ <;> 
-            simp only [right_a₁, right_a₂, right_b₁, right_b₂] <;> linarith
-          done
+lemma mem_feasible (d a b : ℕ) [NeZero d] : ∃ (I : BasicInterval), I.feasible d ∧ mem a b I := by
+  obtain ⟨n, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (NeZero.ne d)
+  induction' n with n ih
+  · exact ⟨base, feasible_base, mem_base _ _⟩
+  · obtain ⟨I', hf, hm⟩ := ih
+    cases feasible_left_or_right hf with
+    | inl h => exact ⟨I', h, hm⟩
+    | inr h =>
+      rcases mem_left_or_mem_right I' hm with hm | hm
+      · exact ⟨I'.left, h.1, hm⟩
+      · exact ⟨I'.right, h.2, hm⟩
 
 end BasicInterval
 
