@@ -363,6 +363,63 @@ infix:50 " ≤c " => @LE.le (Fin _ → ℕ) _
 
 @[simp] lemma dom_iff (w w' : Weight n d) : w ≤d w' ↔ f w ≤ f w' := Iff.rfl
 
+/-- The vector `v a = d•𝟙 - (n+1)•a` associated to a test vector `a` -/
+def v (a : testvecs n d) : Fin n.succ → ℤ := fun i ↦ d - (n + 1) * (a.val i)
+
+/-- The pairing of a weight vector with an integral vector -/
+def pair' (w : Weight n d) (a : Fin n.succ → ℤ) : ℤ := ∑ j, a j * w j
+
+lemma pair'_v (w : Weight n d) (a : testvecs n d) :
+    pair' w (v a) = d * w.sum - (n + 1) * pair w a := by
+  simp [v, pair, pair', Weight.sum, Finset.mul_sum, Finset.sum_sub_distrib, sub_mul, mul_assoc]
+  done
+
+/-- `f w a` vanishes when `w` and `v a` pair to a negative value. -/
+lemma f_apply_eq_zero_of_neg_pair'_v {w : Weight n d} {a : testvecs n d} (h : pair' w (v a) < 0) :
+    f w a = 0 := by
+  simp only [pair'_v, sub_neg] at h 
+  simp only [f_apply, E, tsub_eq_zero_iff_le]
+  zify
+  change ((Weight.sum w) * ↑d / (↑n + 1) : ℤ) < ↑(pair w ↑a)
+  apply Int.ediv_lt_of_lt_mul (by linarith)
+  simp only [mul_comm, h]
+  done
+
+/-- When `w` and `v a` pair nonnegatively, then `f w a = ⌊(pair' w (v a))/(n+1)⌋ + 1`. -/
+lemma f_apply_eq_pair'_v_of_nonneg {w : Weight n d} {a : testvecs n d} (h : 0 ≤ pair' w (v a)) :
+    f w a = pair' w (v a) / (n + 1) + 1 := by
+  simp only [pair'_v, sub_nonneg] at h
+  have H : pair w a ≤ w.sum * d / (n + 1) + 1
+  · zify
+    refine Int.le_add_one (Int.le_ediv_of_mul_le (by linarith) ?_)
+    simp only [mul_comm, h]
+  simp [f_apply, E, pair'_v]
+  zify [H]
+  rw [sub_eq_add_neg (_ * _), neg_mul_eq_mul_neg, Int.add_mul_ediv_left _ _ (by linarith)]
+  ring_nf
+  done
+
+/-- If the pairing of `w` with `v a` for any test vector `a` such that the `pair w (v a) ≥ 0`
+is bounded above by the pairing of `w'` with `v a`, then `w` dominates `w'`.
+Here, `v a = d•𝟙 - (n+1)•a`. (Lemma 3.14) -/
+lemma dom_of_pair_le (w w' : Weight n d)
+     (h : ∀ a : testvecs n d, 0 ≤ pair' w (v a) → pair' w (v a) ≤ pair' w' (v a)) :
+    w ≤d w' := by
+  rw [dom_iff, f_le_iff]
+  intro a
+  by_cases H : 0 ≤ pair' w (v a)
+  · have h' := h a H
+    have H' : 0 ≤ pair' w' (v a) := H.trans h'
+    zify
+    rw [f_apply_eq_pair'_v_of_nonneg H, f_apply_eq_pair'_v_of_nonneg H']
+    simp only [add_le_add_iff_right]
+    exact Int.ediv_le_ediv (by linarith) h'
+    done
+  · push_neg at H
+    rw [f_apply_eq_zero_of_neg_pair'_v H]
+    exact Nat.zero_le _
+    done
+
 lemma dom_dom_of_shift (w : Weight n d) (k : ℕ) :
     w ≤d w + k • (1 : Weight _ _) ∧ w + k • (1 : Weight _ _) ≤d w := by
   simp only [dom_iff, f_eq_on_shift, le_rfl, and_self]
@@ -1112,6 +1169,8 @@ def a₂ (I : BasicInterval) : ℕ := I.data.2.1
 
 def b₂ (I : BasicInterval) : ℕ := I.data.2.2
 
+attribute [pp_dot] a₁ b₁ a₂ b₂
+
 -- Boilerplate
 @[simp] lemma base_a₁ : base.a₁ = 0 := rfl
 
@@ -1146,6 +1205,13 @@ lemma rel : (I : BasicInterval) → I.a₂ * I.b₁ = I.a₁ * I.b₂ + 1
 /-- A fraction `a/b` lies in the basic interval `I`. -/
 def mem (a b : ℕ) (I : BasicInterval) : Prop := b * I.a₁ ≤ a * I.b₁ ∧ a * I.b₂ ≤ b * I.a₂
 
+/-- A fraction `a/b` lies in the interior of the basic interval `I`. -/
+def mem_interior (a b : ℕ) (I : BasicInterval) : Prop := b * I.a₁ < a * I.b₁ ∧ a * I.b₂ < b * I.a₂
+
+lemma mem_of_mem_interior {a b : ℕ} {I : BasicInterval} (h : mem_interior a b I) : mem a b I := by
+  simp only [mem, mem_interior] at h ⊢
+  constructor <;> linarith
+
 @[simp]
 lemma mem_base (a b : ℕ) : mem a b base := by simp [mem]
 
@@ -1177,17 +1243,17 @@ lemma mem_left_or_mem_right {a b : ℕ} (I : BasicInterval) (h : mem a b I) :
 
 /-- A fraction `a/b` that lies in a basic interval `[a₁/b₁, a₂/b₂]` satisfies
 `a = k₁ a₁ + k₂ a₂` and `b = k₁ b₁ + k₂ b₂` for some natural numbers `k₁` and `k₂`. -/
-lemma exists_of_mem (I : BasicInterval) (a b : ℕ) (h : mem a b I) :
+lemma exists_of_mem {a b : ℕ} {I : BasicInterval} (h : mem a b I) :
     ∃ k₁ k₂ : ℕ, a = k₁ * I.a₁ + k₂ * I.a₂ ∧ b = k₁ * I.b₁ + k₂ * I.b₂ := by
   induction I with
   | base       => simp
   | left I ih  =>
     obtain ⟨k₁', k₂, H₁, H₂⟩ := ih (mem_of_mem_left I h)
-    simp
+    simp only [left_a₁, left_a₂, left_b₁, left_b₂]
     have ⟨k₁, hk⟩ : ∃ k, k₁' = k + k₂ := by
       rw [← le_iff_exists_add']
       obtain ⟨_, h₂⟩ := h
-      simp [H₁, H₂, add_mul, mul_add] at h₂
+      simp only [H₁, left_b₂, mul_add, add_mul, H₂, left_a₂] at h₂ 
       have rel := I.rel
       zify at h₂ rel ⊢
       rw [← sub_nonneg] at h₂ ⊢
@@ -1199,11 +1265,11 @@ lemma exists_of_mem (I : BasicInterval) (a b : ℕ) (h : mem a b I) :
     done
   | right I ih =>
     obtain ⟨k₁, k₂', H₁, H₂⟩ := ih (mem_of_mem_right I h)
-    simp
+    simp only [right_a₁, right_a₂, right_b₁, right_b₂]
     have ⟨k₂, hk⟩ : ∃ k, k₂' = k + k₁ := by
       rw [← le_iff_exists_add']
       obtain ⟨h₁, _⟩ := h
-      simp [H₁, H₂, add_mul, mul_add] at h₁
+      simp only [H₂, right_a₁, mul_add, add_mul, H₁, right_b₁] at h₁ 
       have rel := I.rel
       zify at h₁ rel ⊢
       rw [← sub_nonneg] at h₁ ⊢
@@ -1212,6 +1278,26 @@ lemma exists_of_mem (I : BasicInterval) (a b : ℕ) (h : mem a b I) :
       done
     rw [hk] at H₁ H₂
     refine ⟨k₁, k₂, ?_, ?_⟩ <;> linarith
+    done
+
+/-- A fraction `a/b` that lies in a basic interval `[a₁/b₁, a₂/b₂]` satisfies
+`a = k₁ a₁ + k₂ a₂` and `b = k₁ b₁ + k₂ b₂` for some positive natural numbers `k₁` and `k₂`. -/
+lemma exists_of_mem_interior {a b : ℕ} {I : BasicInterval}  (h : mem_interior a b I) :
+    ∃ k₁ k₂ : ℕ, 0 < k₁ ∧ 0 < k₂ ∧ a = k₁ * I.a₁ + k₂ * I.a₂ ∧ b = k₁ * I.b₁ + k₂ * I.b₂ := by
+  obtain ⟨k₁, k₂, h₁, h₂⟩ := exists_of_mem (mem_of_mem_interior h)
+  simp only [mem_interior] at h
+  refine ⟨k₁, k₂, Nat.pos_of_ne_zero ?_, Nat.pos_of_ne_zero ?_, h₁, h₂⟩
+  · rintro rfl
+    simp only [zero_mul, zero_add] at h₁ h₂
+    replace h := h.2
+    simp only [h₁, mul_assoc, h₂, mul_comm I.a₂] at h
+    exact lt_irrefl _ h
+    done
+  · rintro rfl
+    simp only [zero_mul, add_zero] at h₁ h₂ 
+    replace h := h.1
+    simp only [h₁, mul_assoc, h₂, mul_comm I.a₁] at h
+    exact lt_irrefl _ h
     done
 
 /-- A basic interval is *feasible* if it is minimal such that `a₁+b₁, a₂+b₂ ≤ d`. -/
@@ -1242,17 +1328,46 @@ lemma mem_feasible (d a b : ℕ) [NeZero d] : ∃ (I : BasicInterval), I.feasibl
       · exact ⟨I'.left, h.1, hm⟩
       · exact ⟨I'.right, h.2, hm⟩
 
+/-- If `a/b` is in the interior of a feasible interval, then `a + b > d`. -/
+lemma gt_of_mem_interior_feasible {a b d : ℕ} {I : BasicInterval}
+    (hI : I.feasible d) (hab : mem_interior a b I) : d < a + b := by
+  obtain ⟨k₁, k₂, hk₁, hk₂, h₁, h₂⟩ := exists_of_mem_interior hab
+  calc
+    d < I.a₁ + I.a₂ + I.b₁ + I.b₂                       := hI.2.2
+    _ = I.a₁ + I.b₁ + (I.a₂ + I.b₂)                     := by abel
+    _ ≤ k₁ * (I.a₁ + I.b₁) + k₂ * (I.a₂ + I.b₂)         :=
+      Nat.add_le_add (Nat.le_mul_of_pos_left hk₁) (Nat.le_mul_of_pos_left hk₂)
+    _ = k₁ * I.a₁ + k₂ * I.a₂ + (k₁ * I.b₁ + k₂ * I.b₂) := by ring
+    _ = a + b                                           := by rw [h₁, h₂]
+  done
+
 end BasicInterval
 
+/-- The normalized weight vector of dimension `n = 2` associated to a fraction `a/b` -/
+def of_fraction (a b d : ℕ) : Weight 2 d := ![0, b, a + b]
+
 /-- The fraction `a/b`  is an element of `S_≤`. -/
-def mem_S_le (a b : ℕ) : Prop :=
+def mem_S_le (d a b : ℕ) : Prop :=
+  0 < b ∧
   ∃ (i₁ i₂ : ℕ), 3 * i₁ + 3 * i₂ ≤ 2 * d ∧ d < 3 * i₂ ∧
                  a * (3 * i₂ - d) = b * (2 * d - 3 * i₁ - 3 * i₂)
 
 /-- The fraction `a/b` is an element of `S_≥`. -/
-def mem_S_ge (a b : ℕ) : Prop :=
+def mem_S_ge (d a b : ℕ) : Prop :=
+  0 < a ∧
   ∃ (i₁ i₂ : ℕ), i₁ + i₂ ≤ d ∧ 2 * d < 3 * i₁ + 3 * i₂ ∧ 3 * i₂ ≤ d ∧
                  a * (3 * i₂ - d) = b * (2 * d - 3 * i₁ - 3 * i₂)
 
+open BasicInterval
+
+/-- If `I = [a₁/b₁, a₂/b₂]` is a basic interval such that `I ∩ S_≤ ⊆ {a_2/b_2}`,
+then the weight vector associated to any fraction in the interior of `I` is dominated
+by the weight vector associated to the left endpoint of `I`. -/
+lemma dom_of_mem_interior_left (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterval} (hm : mem_interior a b I)
+    (hc : a.coprime b) (h : ∀ a' b', mem_S_le d a' b' → mem a' b' I → a' * I.b₂ = b' * I.a₂) :
+    of_fraction a b d ≤d of_fraction I.a₁ I.b₁ d := by
+  obtain ⟨k₁, k₂, hk₁, hk₂, h₁, h₂⟩ := exists_of_mem_interior hm
+  sorry
+  done
 
 end Weight
