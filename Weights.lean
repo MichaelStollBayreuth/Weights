@@ -1405,13 +1405,11 @@ lemma dom_of_mem_interior_left (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterv
   calc
     _ = 1 * pair' (of_fraction d I.a₁ I.b₁) (v i) + 0 * pair' (of_fraction d I.a₂ I.b₂) (v i) := by
         rw [one_mul, zero_mul, add_zero]
-    _ ≤ k₁ * pair' (of_fraction d I.a₁ I.b₁) (v i)
-         + k₂ * pair' (of_fraction d I.a₂ I.b₂) (v i) :=
+    _ ≤ k₁ * pair' (of_fraction d I.a₁ I.b₁) (v i) + k₂ * pair' (of_fraction d I.a₂ I.b₂) (v i) :=
         add_le_add (Int.mul_le_mul_of_nonneg_right (by exact_mod_cast hk₁) hi)
                    (Int.mul_le_mul_of_nonneg_right (by exact_mod_cast hk₂.le) hi')
     _ = _ := by 
         rw [h₁, h₂, pair'_of_fraction_add, Pi.add_apply, pair'_of_fraction_mul, pair'_of_fraction_mul]
-        done
   done
 
 end Weight
