@@ -1344,7 +1344,33 @@ lemma gt_of_mem_interior_feasible {a b d : ℕ} {I : BasicInterval}
 end BasicInterval
 
 /-- The normalized weight vector of dimension `n = 2` associated to a fraction `a/b` -/
-def of_fraction (a b d : ℕ) : Weight 2 d := ![0, b, a + b]
+def of_fraction (d a b : ℕ) : Weight 2 d := ![0, b, a + b]
+
+lemma pair'_of_fraction (d a b : ℕ) (z : Fin (Nat.succ 2) → ℤ) :
+    pair' (of_fraction d a b ) z = a * z 2 + b * (z 1 + z 2) := by
+  simp only [of_fraction, pair']
+  rw [Fin.sum_univ_three, Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_two]
+  rw [Matrix.head_cons, Matrix.tail_cons, Matrix.head_cons]
+  push_cast
+  ring
+  done
+
+lemma pair'_of_fraction_add (d a₁ b₁ a₂ b₂ : ℕ) :
+    pair' (of_fraction d (a₁ + a₂) (b₁ + b₂)) =
+      pair' (of_fraction d a₁ b₁) + pair' (of_fraction d a₂ b₂) := by
+  ext z
+  simp_rw [Pi.add_apply, pair'_of_fraction]
+  push_cast
+  ring
+  done
+
+lemma pair'_of_fraction_mul (d a b k : ℕ) (z : Fin 3 → ℤ) :
+    pair' (of_fraction d (k * a) (k * b)) z = k * pair' (of_fraction d a b) z := by
+  simp_rw [pair'_of_fraction]
+  push_cast
+  ring
+  done
+
 
 /-- The fraction `a/b`  is an element of `S_≤`. -/
 def mem_S_le (d a b : ℕ) : Prop :=
@@ -1360,14 +1386,32 @@ def mem_S_ge (d a b : ℕ) : Prop :=
 
 open BasicInterval
 
+example (a b c : ℤ) (H : 0 ≤ a) (h : b ≤ c) (h' : 0 ≤ b) : b * a ≤ c * a := by
+  exact Int.mul_le_mul_of_nonneg_right h H
+
 /-- If `I = [a₁/b₁, a₂/b₂]` is a basic interval such that `I ∩ S_≤ ⊆ {a_2/b_2}`,
 then the weight vector associated to any fraction in the interior of `I` is dominated
 by the weight vector associated to the left endpoint of `I`. -/
 lemma dom_of_mem_interior_left (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterval} (hm : mem_interior a b I)
     (hc : a.coprime b) (h : ∀ a' b', mem_S_le d a' b' → mem a' b' I → a' * I.b₂ = b' * I.a₂) :
-    of_fraction a b d ≤d of_fraction I.a₁ I.b₁ d := by
+    of_fraction d I.a₁ I.b₁ ≤d of_fraction d a b := by
   obtain ⟨k₁, k₂, hk₁, hk₂, h₁, h₂⟩ := exists_of_mem_interior hm
-  sorry
+  apply dom_of_pair_le
+  intro i hi -- `hi : ⟨vᵢ, w₋⟩ ≥ 0`
+  have hi' : 0 ≤ pair' (of_fraction d I.a₂ I.b₂) (v i) -- `⟨vᵢ, w₊⟩ ≥ 0`
+  · 
+    sorry
+    done
+  calc
+    _ = 1 * pair' (of_fraction d I.a₁ I.b₁) (v i) + 0 * pair' (of_fraction d I.a₂ I.b₂) (v i) := by
+        rw [one_mul, zero_mul, add_zero]
+    _ ≤ k₁ * pair' (of_fraction d I.a₁ I.b₁) (v i)
+         + k₂ * pair' (of_fraction d I.a₂ I.b₂) (v i) :=
+        add_le_add (Int.mul_le_mul_of_nonneg_right (by exact_mod_cast hk₁) hi)
+                   (Int.mul_le_mul_of_nonneg_right (by exact_mod_cast hk₂.le) hi')
+    _ = _ := by 
+        rw [h₁, h₂, pair'_of_fraction_add, Pi.add_apply, pair'_of_fraction_mul, pair'_of_fraction_mul]
+        done
   done
 
 end Weight
