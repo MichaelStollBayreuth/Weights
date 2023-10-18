@@ -1202,6 +1202,12 @@ lemma rel : (I : BasicInterval) → I.a₂ * I.b₁ = I.a₁ * I.b₂ + 1
 | left I'  => by simp [add_mul, mul_add, I'.rel, add_assoc]
 | right I' => by simp [add_mul, mul_add, I'.rel, add_assoc, add_comm]
 
+lemma b₁_pos : (I : BasicInterval) → 0 < I.b₁
+| base     => by simp
+| left I'  => by simp [I'.b₁_pos]
+| right I' => by simp [I'.b₁_pos]
+
+
 /-- A fraction `a/b` lies in the basic interval `I`. -/
 def mem (a b : ℕ) (I : BasicInterval) : Prop := b * I.a₁ ≤ a * I.b₁ ∧ a * I.b₂ ≤ b * I.a₂
 
@@ -1373,35 +1379,60 @@ lemma pair'_of_fraction_mul (d a b k : ℕ) (z : Fin 3 → ℤ) :
 
 
 /-- The fraction `a/b`  is an element of `S_≤`. -/
-def mem_S_le (d a b : ℕ) : Prop :=
+def mem_S_le (d : ℕ) (a b : ℤ): Prop :=
   0 < b ∧
   ∃ (i₁ i₂ : ℕ), 3 * i₁ + 3 * i₂ ≤ 2 * d ∧ d < 3 * i₂ ∧
                  a * (3 * i₂ - d) = b * (2 * d - 3 * i₁ - 3 * i₂)
 
 /-- The fraction `a/b` is an element of `S_≥`. -/
-def mem_S_ge (d a b : ℕ) : Prop :=
+def mem_S_ge (d : ℕ) (a b : ℤ): Prop :=
   0 < a ∧
   ∃ (i₁ i₂ : ℕ), i₁ + i₂ ≤ d ∧ 2 * d < 3 * i₁ + 3 * i₂ ∧ 3 * i₂ ≤ d ∧
                  a * (3 * i₂ - d) = b * (2 * d - 3 * i₁ - 3 * i₂)
 
 open BasicInterval
 
-example (a b c : ℤ) (H : 0 ≤ a) (h : b ≤ c) (h' : 0 ≤ b) : b * a ≤ c * a := by
-  exact Int.mul_le_mul_of_nonneg_right h H
-
 /-- If `I = [a₁/b₁, a₂/b₂]` is a basic interval such that `I ∩ S_≤ ⊆ {a_2/b_2}`,
 then the weight vector associated to any fraction in the interior of `I` is dominated
 by the weight vector associated to the left endpoint of `I`. -/
 lemma dom_of_mem_interior_left (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterval} (hm : mem_interior a b I)
-    (hc : a.coprime b) (h : ∀ a' b', mem_S_le d a' b' → mem a' b' I → a' * I.b₂ = b' * I.a₂) :
+    (hc : a.coprime b) (h : ∀ (a' b' : ℕ), mem_S_le d a' b' → mem a' b' I → a' * I.b₂ = b' * I.a₂) :
     of_fraction d I.a₁ I.b₁ ≤d of_fraction d a b := by
   obtain ⟨k₁, k₂, hk₁, hk₂, h₁, h₂⟩ := exists_of_mem_interior hm
   apply dom_of_pair_le
   intro i hi -- `hi : ⟨vᵢ, w₋⟩ ≥ 0`
   have hi' : 0 ≤ pair' (of_fraction d I.a₂ I.b₂) (v i) -- `⟨vᵢ, w₊⟩ ≥ 0`
-  · 
-    sorry
-    done
+  · simp only [v, Nat.cast_ofNat, pair'_of_fraction] at hi ⊢
+    norm_num at hi ⊢
+    set ai : ℤ := d - 3 * (i.val 1) + (d - 3 * (i.val 2)) with hai_def
+    set bi : ℤ := d - 3 * (i.val 2) with hbi_def
+    cases' le_or_lt 0 bi with hbi hbi
+    · refine (zero_le_mul_right (Int.ofNat_pos.mpr I.b₁_pos)).mp ?_
+      calc
+        (0 : ℤ)
+          ≤ (I.a₁ * bi + I.b₁ * ai) * I.b₂           := Int.mul_nonneg hi (Int.ofNat_nonneg I.b₂)
+        _ = I.a₁ * I.b₂ * bi + I.b₁ * I.b₂ * ai      := by ring
+        _ = I.a₂ * I.b₁ * bi + I.b₁ * I.b₂ * ai - bi := by norm_cast; rw [I.rel]; push_cast; ring
+        _ = (I.a₂ * bi + I.b₂ * ai) * I.b₁ - bi      := by ring
+        _ ≤ _                                        := Int.sub_le_self _ hbi
+      done
+    · have hai : 0 ≤ ai
+      · by_contra hai
+        have H₁ : I.a₁ * bi ≤ 0 := Int.mul_nonpos_of_nonneg_of_nonpos (Int.ofNat_nonneg I.a₁) hbi.le
+        have H₂ : I.b₁ * ai < 0 :=
+          Int.mul_neg_of_pos_of_neg (Int.ofNat_pos.mpr I.b₁_pos) (Int.not_le.mp hai)
+        linarith        
+        done
+      have memS : mem_S_le d ai (-bi) :=
+        ⟨Int.neg_pos_of_neg hbi, i.val 1, i.val 2, by linarith, by linarith, by ring⟩
+      have Hai : ai.toNat = ai := Int.toNat_of_nonneg hai
+      have Hbi : (-bi).toNat = -bi := Int.toNat_of_nonneg (Int.neg_nonneg_of_nonpos hbi.le)
+      specialize h ai.toNat (-bi).toNat
+      rw [Hai, Hbi] at h
+      specialize h memS
+      
+      sorry
+      done
   calc
     _ = 1 * pair' (of_fraction d I.a₁ I.b₁) (v i) + 0 * pair' (of_fraction d I.a₂ I.b₂) (v i) := by
         rw [one_mul, zero_mul, add_zero]
@@ -1413,3 +1444,10 @@ lemma dom_of_mem_interior_left (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterv
   done
 
 end Weight
+
+example (a b : ℤ) (ha : 0 ≤ a) (hb : b ≤ 0) : a * b ≤ 0 := by exact Int.mul_nonpos_of_nonneg_of_nonpos ha hb
+example (n : ℕ) (h : 0 < n) : (0 : ℤ) < n := by exact Iff.mpr Int.ofNat_pos h
+example (n : ℕ) : 0 ≤ (n : ℤ) := by exact Int.ofNat_nonneg n
+example (a : ℤ) (h : ¬ 0 ≤ a) : a < 0 := by exact Iff.mp Int.not_le h
+example (a b : ℤ) (h : 0 ≤ b) : a - b ≤ a := by exact Int.sub_le_self a h
+example (a : ℤ) (h : a < 0) : 0 ≤ -a := by exact Int.neg_nonneg_of_nonpos h.le
