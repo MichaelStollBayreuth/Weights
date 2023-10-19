@@ -271,7 +271,7 @@ open BasicInterval
 then the weight vector associated to any fraction in the interior of `I` is dominated
 by the weight vector associated to the left endpoint of `I`. -/
 lemma dom_of_mem_interior_left (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterval} (hm : mem_interior a b I)
-    (hc : a.coprime b) (h : ∀ (a' b' : ℕ), mem_S_le d a' b' → mem a' b' I → a' * I.b₂ = b' * I.a₂) :
+    (h : ∀ (a' b' : ℕ), mem_S_le d a' b' → mem a' b' I → a' * I.b₂ = b' * I.a₂) :
     of_fraction d I.a₁ I.b₁ ≤d of_fraction d a b := by
   obtain ⟨k₁, k₂, hk₁, hk₂, h₁, h₂⟩ := exists_of_mem_interior hm
   apply dom_of_pair_le
@@ -304,9 +304,14 @@ lemma dom_of_mem_interior_left (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterv
       have Hbi : (-bi).toNat = -bi := Int.toNat_of_nonneg (Int.neg_nonneg_of_nonpos hbi.le)
       specialize h ai.toNat (-bi).toNat
       rw [Hai, Hbi] at h
-      specialize h memS
-      
-      sorry
+      by_contra H
+      replace H := Int.not_le.mp H
+      have hmem : mem ai.toNat (-bi).toNat I
+      · refine ⟨?_, ?_⟩ <;> { zify; rw [Hai, Hbi]; linarith }
+        done
+      specialize h memS hmem
+      zify at h; rw [Hai, Hbi] at h
+      linarith
       done
   calc
     _ = 1 * pair' (of_fraction d I.a₁ I.b₁) (v i) + 0 * pair' (of_fraction d I.a₂ I.b₂) (v i) := by
@@ -319,12 +324,3 @@ lemma dom_of_mem_interior_left (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterv
   done
 
 end Weight
-
-#check Weight
-
-example (a b : ℤ) (ha : 0 ≤ a) (hb : b ≤ 0) : a * b ≤ 0 := by exact Int.mul_nonpos_of_nonneg_of_nonpos ha hb
-example (n : ℕ) (h : 0 < n) : (0 : ℤ) < n := by exact Iff.mpr Int.ofNat_pos h
-example (n : ℕ) : 0 ≤ (n : ℤ) := by exact Int.ofNat_nonneg n
-example (a : ℤ) (h : ¬ 0 ≤ a) : a < 0 := by exact Iff.mp Int.not_le h
-example (a b : ℤ) (h : 0 ≤ b) : a - b ≤ a := by exact Int.sub_le_self a h
-example (a : ℤ) (h : a < 0) : 0 ≤ -a := by exact Int.neg_nonneg_of_nonpos h.le
