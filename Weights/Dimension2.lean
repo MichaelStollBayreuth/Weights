@@ -87,12 +87,35 @@ lemma a₂_pos : (I : BasicInterval) → 0 < I.a₂
 | left I'  => by simp [I'.a₂_pos]
 | right I' => by simp [I'.a₂_pos]
 
+lemma coprime (I : BasicInterval) : Nat.Coprime (I.a₂ * I.b₁) (I.a₁ * I.b₂) := by
+  rw [Nat.Coprime, Nat.gcd_eq_iff]
+  simp? says simp only [isUnit_one, IsUnit.dvd, Nat.isUnit_iff, Nat.dvd_one, true_and]
+  intros c h₁ h₂
+  rw [I.rel] at h₁
+  exact Nat.dvd_one.mp <| (Nat.dvd_add_right h₂).mp h₁
+  done 
+
+lemma coprime₁ (I : BasicInterval) : I.a₁.Coprime I.b₁ :=
+  (Nat.Coprime.coprime_mul_right_right <| Nat.Coprime.coprime_mul_left I.coprime).symm
+
+lemma coprime₂ (I : BasicInterval) : I.a₂.Coprime I.b₂ :=
+  Nat.Coprime.coprime_mul_right (k := I.b₁) <| Nat.Coprime.coprime_mul_left_right I.coprime
 
 /-- A fraction `a/b` lies in the basic interval `I`. -/
 def mem (a b : ℕ) (I : BasicInterval) : Prop := b * I.a₁ ≤ a * I.b₁ ∧ a * I.b₂ ≤ b * I.a₂
 
 /-- A fraction `a/b` lies in the interior of the basic interval `I`. -/
 def mem_interior (a b : ℕ) (I : BasicInterval) : Prop := b * I.a₁ < a * I.b₁ ∧ a * I.b₂ < b * I.a₂
+
+lemma eq_or_eq_or_mem_interior_of_mem {a b : ℕ} {I : BasicInterval} (h : mem a b I) :
+    a * I.b₁ = b * I.a₁ ∨ a * I.b₂ = b * I.a₂ ∨ mem_interior a b I := by
+  obtain ⟨h₁, h₂⟩ := h
+  cases' h₁.eq_or_lt with H₁ H₁
+  · exact Or.inl H₁.symm
+  cases' h₂.eq_or_lt with H₂ H₂
+  · exact Or.inr <| Or.inl H₂
+  exact Or.inr <| Or.inr ⟨H₁, H₂⟩ 
+  done  
 
 lemma mem_of_mem_interior {a b : ℕ} {I : BasicInterval} (h : mem_interior a b I) : mem a b I := by
   simp only [mem, mem_interior] at h ⊢
@@ -385,6 +408,31 @@ lemma dom_of_mem_interior_right (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInter
                    (Int.mul_le_mul_of_nonneg_right (by exact_mod_cast hk₂) hi)
     _ = _ := by 
         rw [h₁, h₂, pair'_of_fraction_add, Pi.add_apply, pair'_of_fraction_mul, pair'_of_fraction_mul]
+  done
+
+lemma dom_of_proportional (d : ℕ) [NeZero d] {a b a' b' : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) (hc : a'.coprime b')
+    (h : a * b' = b * a') :
+    of_fraction d a' b' ≤d of_fraction d a b := by
+  apply dom_of_pair_le
+  intro i hi
+  simp_rw [pair'_of_fraction] at hi ⊢
+
+  sorry
+  done
+
+/-- Lemma 4.1. If `I = [a₁/b₁, a₂/b₂]` is a basic interval such that
+`I ∩ S_≤ ⊆ {a₂/b₂}` or `I ∩ S_≥ ⊆ {a₁/b₁}`, then the weight vector associated to any fraction
+in `I` is dominated by the weight vector associated to one endpoint of `I`.-/
+lemma dom_of_mem (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterval} (ha : a ≠ 0) (hb : b ≠ 0) (hm : mem a b I)
+    (h : (∀ (a' b' : ℕ), mem_S_le d a' b' → mem a' b' I → a' * I.b₂ = b' * I.a₂) ∨
+         ∀ (a' b' : ℕ), mem_S_ge d a' b' → mem a' b' I → a' * I.b₁ = b' * I.a₁) :
+    of_fraction d I.a₁ I.b₁ ≤d of_fraction d a b ∨ of_fraction d I.a₂ I.b₂ ≤d of_fraction d a b := by
+  rcases eq_or_eq_or_mem_interior_of_mem hm with H | H | H
+  · exact Or.inl <| dom_of_proportional d ha hb H 
+  · exact Or.inr <| dom_of_proportional d ha hb H
+  · rcases h with h | h
+    · exact Or.inl <| dom_of_mem_interior_left d H h
+    · exact Or.inr <| dom_of_mem_interior_right d H h
   done
 
 end Weight
