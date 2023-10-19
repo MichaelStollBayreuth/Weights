@@ -10,5 +10,6 @@ require mathlib from git
 
 @[default_target]
 lean_lib «Weights» {
+  globs := #[.submodules `Weights]
   -- add any library configuration options here
 }
