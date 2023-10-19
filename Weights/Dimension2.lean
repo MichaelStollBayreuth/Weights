@@ -82,6 +82,11 @@ lemma b₁_pos : (I : BasicInterval) → 0 < I.b₁
 | left I'  => by simp [I'.b₁_pos]
 | right I' => by simp [I'.b₁_pos]
 
+lemma a₂_pos : (I : BasicInterval) → 0 < I.a₂
+| base     => by simp
+| left I'  => by simp [I'.a₂_pos]
+| right I' => by simp [I'.a₂_pos]
+
 
 /-- A fraction `a/b` lies in the basic interval `I`. -/
 def mem (a b : ℕ) (I : BasicInterval) : Prop := b * I.a₁ ≤ a * I.b₁ ∧ a * I.b₂ ≤ b * I.a₂
@@ -267,7 +272,7 @@ def mem_S_ge (d : ℕ) (a b : ℤ): Prop :=
 
 open BasicInterval
 
-/-- If `I = [a₁/b₁, a₂/b₂]` is a basic interval such that `I ∩ S_≤ ⊆ {a_2/b_2}`,
+/-- If `I = [a₁/b₁, a₂/b₂]` is a basic interval such that `I ∩ S_≤ ⊆ {a₂/b₂}`,
 then the weight vector associated to any fraction in the interior of `I` is dominated
 by the weight vector associated to the left endpoint of `I`. -/
 lemma dom_of_mem_interior_left (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterval} (hm : mem_interior a b I)
@@ -279,8 +284,8 @@ lemma dom_of_mem_interior_left (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterv
   have hi' : 0 ≤ pair' (of_fraction d I.a₂ I.b₂) (v i) -- `⟨vᵢ, w₊⟩ ≥ 0`
   · simp only [v, Nat.cast_ofNat, pair'_of_fraction] at hi ⊢
     norm_num at hi ⊢
-    set ai : ℤ := d - 3 * (i.val 1) + (d - 3 * (i.val 2)) with hai_def
     set bi : ℤ := d - 3 * (i.val 2) with hbi_def
+    set ai : ℤ := d - 3 * (i.val 1) + (d - 3 * (i.val 2)) with hai_def
     cases' le_or_lt 0 bi with hbi hbi
     · refine (zero_le_mul_right (Int.ofNat_pos.mpr I.b₁_pos)).mp ?_
       calc
@@ -302,13 +307,12 @@ lemma dom_of_mem_interior_left (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterv
         ⟨Int.neg_pos_of_neg hbi, i.val 1, i.val 2, by linarith, by linarith, by ring⟩
       have Hai : ai.toNat = ai := Int.toNat_of_nonneg hai
       have Hbi : (-bi).toNat = -bi := Int.toNat_of_nonneg (Int.neg_nonneg_of_nonpos hbi.le)
-      specialize h ai.toNat (-bi).toNat
-      rw [Hai, Hbi] at h
       by_contra H
-      replace H := Int.not_le.mp H
       have hmem : mem ai.toNat (-bi).toNat I
       · refine ⟨?_, ?_⟩ <;> { zify; rw [Hai, Hbi]; linarith }
         done
+      specialize h ai.toNat (-bi).toNat
+      rw [Hai, Hbi] at h
       specialize h memS hmem
       zify at h; rw [Hai, Hbi] at h
       linarith
@@ -319,6 +323,66 @@ lemma dom_of_mem_interior_left (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterv
     _ ≤ k₁ * pair' (of_fraction d I.a₁ I.b₁) (v i) + k₂ * pair' (of_fraction d I.a₂ I.b₂) (v i) :=
         add_le_add (Int.mul_le_mul_of_nonneg_right (by exact_mod_cast hk₁) hi)
                    (Int.mul_le_mul_of_nonneg_right (by exact_mod_cast hk₂.le) hi')
+    _ = _ := by 
+        rw [h₁, h₂, pair'_of_fraction_add, Pi.add_apply, pair'_of_fraction_mul, pair'_of_fraction_mul]
+  done
+
+/-- If `I = [a₁/b₁, a₂/b₂]` is a basic interval such that `I ∩ S_≥ ⊆ {a₁/b₁}`,
+then the weight vector associated to any fraction in the interior of `I` is dominated
+by the weight vector associated to the right endpoint of `I`. -/
+lemma dom_of_mem_interior_right (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterval} (hm : mem_interior a b I)
+    (h : ∀ (a' b' : ℕ), mem_S_ge d a' b' → mem a' b' I → a' * I.b₁ = b' * I.a₁) :
+    of_fraction d I.a₂ I.b₂ ≤d of_fraction d a b := by
+  obtain ⟨k₁, k₂, hk₁, hk₂, h₁, h₂⟩ := exists_of_mem_interior hm
+  apply dom_of_pair_le
+  intro i hi -- `hi : ⟨vᵢ, w₊⟩ ≥ 0`
+  have hi' : 0 ≤ pair' (of_fraction d I.a₁ I.b₁) (v i) -- `⟨vᵢ, w₋⟩ ≥ 0`
+  · simp only [v, Nat.cast_ofNat, pair'_of_fraction] at hi ⊢
+    norm_num at hi ⊢
+    set bi : ℤ := d - 3 * (i.val 2) with hbi_def
+    set ai : ℤ := d - 3 * (i.val 1) + (d - 3 * (i.val 2)) with hai_def
+    cases' le_or_lt 0 ai with hai hai
+    · refine (zero_le_mul_right (Int.ofNat_pos.mpr I.a₂_pos)).mp ?_
+      calc
+        (0 : ℤ)
+          ≤ (I.a₂ * bi + I.b₂ * ai) * I.a₁           := Int.mul_nonneg hi (Int.ofNat_nonneg I.a₁)
+        _ = I.a₁ * I.a₂ * bi + I.a₁ * I.b₂ * ai      := by ring
+        _ = I.a₁ * I.a₂ * bi + I.a₂ * I.b₁ * ai - ai := by norm_cast; rw [I.rel]; push_cast; ring
+        _ = (I.a₁ * bi + I.b₁ * ai) * I.a₂ - ai      := by ring
+        _ ≤ _                                        := Int.sub_le_self _ hai
+      done
+    · have hbi : 0 ≤ bi
+      · by_contra hbi
+        have H₁ : I.b₂ * ai ≤ 0 := Int.mul_nonpos_of_nonneg_of_nonpos (Int.ofNat_nonneg I.b₂) hai.le
+        have H₂ : I.a₂ * bi < 0 :=
+          Int.mul_neg_of_pos_of_neg (Int.ofNat_pos.mpr I.a₂_pos) (Int.not_le.mp hbi)
+        linarith        
+        done
+      have memS : mem_S_ge d (-ai) bi
+      · refine ⟨Int.neg_pos_of_neg hai, i.val 1, i.val 2, ?_, by linarith, by linarith, by ring⟩
+        have : i.val.sum = d := i.prop
+        have HH : i.val.sum = i.val 0 + (i.val 1 + i.val 2)
+        · rw [Weight.sum, Fin.sum_univ_three, add_assoc]
+        linarith
+        done
+      have Hbi : bi.toNat = bi := Int.toNat_of_nonneg hbi
+      have Hai : (-ai).toNat = -ai := Int.toNat_of_nonneg (Int.neg_nonneg_of_nonpos hai.le)
+      by_contra H
+      have hmem : mem (-ai).toNat bi.toNat I
+      · refine ⟨?_, ?_⟩ <;> { zify; rw [Hai, Hbi]; linarith }
+        done
+      specialize h (-ai).toNat bi.toNat
+      rw [Hai, Hbi] at h
+      specialize h memS hmem
+      zify at h; rw [Hai, Hbi] at h
+      linarith
+      done
+  calc
+    _ = 0 * pair' (of_fraction d I.a₁ I.b₁) (v i) + 1 * pair' (of_fraction d I.a₂ I.b₂) (v i) := by
+        rw [one_mul, zero_mul, zero_add]
+    _ ≤ k₁ * pair' (of_fraction d I.a₁ I.b₁) (v i) + k₂ * pair' (of_fraction d I.a₂ I.b₂) (v i) :=
+        add_le_add (Int.mul_le_mul_of_nonneg_right (by exact_mod_cast hk₁.le) hi')
+                   (Int.mul_le_mul_of_nonneg_right (by exact_mod_cast hk₂) hi)
     _ = _ := by 
         rw [h₁, h₂, pair'_of_fraction_add, Pi.add_apply, pair'_of_fraction_mul, pair'_of_fraction_mul]
   done
