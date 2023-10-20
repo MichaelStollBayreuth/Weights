@@ -104,6 +104,12 @@ lemma coprime₂ (I : BasicInterval) : I.a₂.Coprime I.b₂ :=
 /-- A fraction `a/b` lies in the basic interval `I`. -/
 def mem (a b : ℕ) (I : BasicInterval) : Prop := b * I.a₁ ≤ a * I.b₁ ∧ a * I.b₂ ≤ b * I.a₂
 
+lemma mem_of_proportional {I : BasicInterval} {a b g : ℕ} (hg : 0 < g) (h : mem (a * g) (b * g) I) :
+    mem a b I := by
+  obtain ⟨h₁, h₂⟩ := h
+  simp_rw [mul_comm _ g, mul_assoc] at h₁ h₂
+  exact ⟨Nat.le_of_mul_le_mul_left h₁ hg, Nat.le_of_mul_le_mul_left h₂ hg⟩
+
 /-- A fraction `a/b` lies in the interior of the basic interval `I`. -/
 def mem_interior (a b : ℕ) (I : BasicInterval) : Prop := b * I.a₁ < a * I.b₁ ∧ a * I.b₂ < b * I.a₂
 
@@ -282,16 +288,28 @@ lemma pair'_of_fraction_mul (d a b k : ℕ) (z : Fin 3 → ℤ) :
 
 
 /-- The fraction `a/b`  is an element of `S_≤`. -/
-def mem_S_le (d : ℕ) (a b : ℤ): Prop :=
+def mem_S_le (d : ℕ) (a b : ℤ) : Prop :=
   0 < b ∧
   ∃ (i₁ i₂ : ℕ), 3 * i₁ + 3 * i₂ ≤ 2 * d ∧ d < 3 * i₂ ∧
                  a * (3 * i₂ - d) = b * (2 * d - 3 * i₁ - 3 * i₂)
 
 /-- The fraction `a/b` is an element of `S_≥`. -/
-def mem_S_ge (d : ℕ) (a b : ℤ): Prop :=
+def mem_S_ge (d : ℕ) (a b : ℤ) : Prop :=
   0 < a ∧
   ∃ (i₁ i₂ : ℕ), i₁ + i₂ ≤ d ∧ 2 * d < 3 * i₁ + 3 * i₂ ∧ 3 * i₂ ≤ d ∧
                  a * (3 * i₂ - d) = b * (2 * d - 3 * i₁ - 3 * i₂)
+
+lemma mem_S_le_of_proportional {d : ℕ} {a b g : ℤ} (hg : 0 < g) (h : mem_S_le d (a * g) (b * g)) :
+    mem_S_le d a b := by
+  obtain ⟨h₁, i₁, i₂, h₂, h₃, h₄⟩ := h
+  simp_rw [mul_comm _ g, mul_assoc] at h₄
+  exact ⟨(zero_lt_mul_right hg).mp h₁, i₁, i₂, h₂, h₃, Int.eq_of_mul_eq_mul_left hg.ne' h₄⟩
+
+lemma mem_S_ge_of_proportional {d : ℕ} {a b g : ℤ} (hg : 0 < g) (h : mem_S_ge d (a * g) (b * g)) :
+    mem_S_ge d a b := by
+  obtain ⟨h₁, i₁, i₂, h', h₂, h₃, h₄⟩ := h
+  simp_rw [mul_comm _ g, mul_assoc] at h₄
+  exact ⟨(zero_lt_mul_right hg).mp h₁, i₁, i₂, h', h₂, h₃, Int.eq_of_mul_eq_mul_left hg.ne' h₄⟩
 
 open BasicInterval
 
@@ -463,14 +481,50 @@ lemma dom_of_mem (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterval} (hab : a �
     · exact Or.inr <| dom_of_mem_interior_right d H h
   done
 
+/-- It is sufficient to require the condition for coprime pairs. -/
+lemma condition_iff_weaker_le (d : ℕ) [NeZero d] (I : BasicInterval) :
+    (∀ (a b : ℕ), Nat.Coprime a b → mem_S_le d a b → mem a b I → a * I.b₂ = b * I.a₂) ↔
+      ∀ (a b : ℕ), mem_S_le d a b → mem a b I → a * I.b₂ = b * I.a₂ := by
+  refine ⟨fun H a b h₁ h₂ ↦ ?_, fun H a b _ ↦ H a b⟩
+  cases' Nat.eq_zero_or_pos (Nat.gcd a b) with h₀ h₀
+  · obtain ⟨rfl, rfl⟩ := Nat.gcd_eq_zero_iff.mp h₀
+    simp only [zero_mul]
+    done
+  obtain ⟨g, a', b', hg₁, hcop, rfl, rfl⟩ := Nat.exists_coprime' h₀; clear h₀
+  have H₁ : mem_S_le d a' b' := sorry
+  have H₂ : mem a' b' I := sorry
+  simp_rw [mul_comm _ g, mul_assoc]
+  congr 1
+  exact H a' b' hcop H₁ H₂
+
+lemma condition_iff_weaker_ge (d : ℕ) [NeZero d] (I : BasicInterval) :
+    (∀ (a b : ℕ), Nat.Coprime a b → mem_S_ge d a b → mem a b I → a * I.b₁ = b * I.a₁) ↔
+      ∀ (a b : ℕ), mem_S_ge d a b → mem a b I → a * I.b₁ = b * I.a₁ := by
+  refine ⟨?_, fun H a b _ ↦ H a b⟩  
+  sorry
+  done
+
+
 /-- A feasible basic interval `I = [a₁/b₁, a₂/b₂]` satisfies the condition
 `I ∩ S_≤ ⊆ {a₂/b₂}` or `I ∩ S_≥ ⊆ {a₁/b₁}`. -/
 lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.feasible d) :
     (∀ (a' b' : ℕ), mem_S_le d a' b' → mem a' b' I → a' * I.b₂ = b' * I.a₂) ∨
     ∀ (a' b' : ℕ), mem_S_ge d a' b' → mem a' b' I → a' * I.b₁ = b' * I.a₁ := by
+  rw [← condition_iff_weaker_le, ← condition_iff_weaker_ge]
+  by_cases hd : 3 ∣ d
+  · -- case `d` is divisble by 3
+    obtain ⟨δ, rfl⟩ := hd
+    by_contra' H
+    obtain ⟨⟨s₁, t₁, hcop₁, hSle, hmem₁, hne₁⟩, ⟨s₂, t₂, hcop₂, hSge, hmem₂, hne₂⟩⟩ := H
+    unfold mem_S_le at hSle
+    unfold mem at hmem₁
+    unfold feasible at hI
+    done
   sorry
   done
 
+#check Nat.exists_coprime
+#check Nat.exists_coprime'
 /-- Every weight vector `[0, b, a+b]` is dominated by a weight vector `[0, t, s+t]` with `s + t ≤ d`. -/
 theorem dom_by_max_le_d (d : ℕ) [NeZero d] (a b : ℕ) :
     ∃ s t : ℕ, s + t ≤ d ∧ of_fraction d s t ≤d of_fraction d a b := by
