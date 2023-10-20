@@ -299,16 +299,18 @@ def mem_S_ge (d : ℕ) (a b : ℤ) : Prop :=
   ∃ (i₁ i₂ : ℕ), i₁ + i₂ ≤ d ∧ 2 * d < 3 * i₁ + 3 * i₂ ∧ 3 * i₂ ≤ d ∧
                  a * (3 * i₂ - d) = b * (2 * d - 3 * i₁ - 3 * i₂)
 
-lemma mem_S_le_of_proportional {d : ℕ} {a b g : ℤ} (hg : 0 < g) (h : mem_S_le d (a * g) (b * g)) :
+lemma mem_S_le_of_proportional {d g : ℕ} {a b : ℤ} (hg : 0 < g) (h : mem_S_le d (a * g) (b * g)) :
     mem_S_le d a b := by
   obtain ⟨h₁, i₁, i₂, h₂, h₃, h₄⟩ := h
-  simp_rw [mul_comm _ g, mul_assoc] at h₄
+  simp_rw [mul_comm _ (g : ℤ), mul_assoc] at h₄
+  replace hg : (0 : ℤ) < g := Nat.cast_pos.mpr hg
   exact ⟨(zero_lt_mul_right hg).mp h₁, i₁, i₂, h₂, h₃, Int.eq_of_mul_eq_mul_left hg.ne' h₄⟩
 
-lemma mem_S_ge_of_proportional {d : ℕ} {a b g : ℤ} (hg : 0 < g) (h : mem_S_ge d (a * g) (b * g)) :
+lemma mem_S_ge_of_proportional {d g : ℕ} {a b : ℤ} (hg : 0 < g) (h : mem_S_ge d (a * g) (b * g)) :
     mem_S_ge d a b := by
   obtain ⟨h₁, i₁, i₂, h', h₂, h₃, h₄⟩ := h
-  simp_rw [mul_comm _ g, mul_assoc] at h₄
+  simp_rw [mul_comm _ (g : ℤ), mul_assoc] at h₄
+  replace hg : (0 : ℤ) < g := Nat.cast_pos.mpr hg
   exact ⟨(zero_lt_mul_right hg).mp h₁, i₁, i₂, h', h₂, h₃, Int.eq_of_mul_eq_mul_left hg.ne' h₄⟩
 
 open BasicInterval
@@ -491,8 +493,10 @@ lemma condition_iff_weaker_le (d : ℕ) [NeZero d] (I : BasicInterval) :
     simp only [zero_mul]
     done
   obtain ⟨g, a', b', hg₁, hcop, rfl, rfl⟩ := Nat.exists_coprime' h₀; clear h₀
-  have H₁ : mem_S_le d a' b' := sorry
-  have H₂ : mem a' b' I := sorry
+  have H₁ : mem_S_le d a' b'
+  · push_cast at h₁
+    exact mem_S_le_of_proportional hg₁ h₁
+  have H₂ : mem a' b' I := mem_of_proportional hg₁ h₂
   simp_rw [mul_comm _ g, mul_assoc]
   congr 1
   exact H a' b' hcop H₁ H₂
@@ -500,9 +504,19 @@ lemma condition_iff_weaker_le (d : ℕ) [NeZero d] (I : BasicInterval) :
 lemma condition_iff_weaker_ge (d : ℕ) [NeZero d] (I : BasicInterval) :
     (∀ (a b : ℕ), Nat.Coprime a b → mem_S_ge d a b → mem a b I → a * I.b₁ = b * I.a₁) ↔
       ∀ (a b : ℕ), mem_S_ge d a b → mem a b I → a * I.b₁ = b * I.a₁ := by
-  refine ⟨?_, fun H a b _ ↦ H a b⟩  
-  sorry
-  done
+  refine ⟨fun H a b h₁ h₂ ↦ ?_, fun H a b _ ↦ H a b⟩
+  cases' Nat.eq_zero_or_pos (Nat.gcd a b) with h₀ h₀
+  · obtain ⟨rfl, rfl⟩ := Nat.gcd_eq_zero_iff.mp h₀
+    simp only [zero_mul]
+    done
+  obtain ⟨g, a', b', hg₁, hcop, rfl, rfl⟩ := Nat.exists_coprime' h₀; clear h₀
+  have H₁ : mem_S_ge d a' b'
+  · push_cast at h₁
+    exact mem_S_ge_of_proportional hg₁ h₁
+  have H₂ : mem a' b' I := mem_of_proportional hg₁ h₂
+  simp_rw [mul_comm _ g, mul_assoc]
+  congr 1
+  exact H a' b' hcop H₁ H₂
 
 
 /-- A feasible basic interval `I = [a₁/b₁, a₂/b₂]` satisfies the condition
