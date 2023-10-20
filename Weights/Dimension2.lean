@@ -413,21 +413,17 @@ lemma dom_of_mem_interior_right (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInter
 /-- Helper lemma that might go into Mathlib -/
 lemma proportional {a b c d : ℕ} (h : a * d = b * c) (h' : Nat.Coprime a b) :
     ∃ m, c = m * a ∧ d = m * b := by
-  obtain ⟨c₁, hc⟩ := (Nat.Coprime.dvd_mul_left h').mp <| Dvd.intro d h
-  obtain ⟨d₁, hd⟩ := (Nat.Coprime.dvd_mul_left h'.symm).mp <| Dvd.intro c h.symm
-  rw [hc, hd] at h ⊢ 
+  obtain ⟨c₁, rfl⟩ := (Nat.Coprime.dvd_mul_left h').mp <| Dvd.intro d h
+  obtain ⟨d₁, rfl⟩ := (Nat.Coprime.dvd_mul_left h'.symm).mp <| Dvd.intro _ h.symm
   cases' eq_or_ne (a * b) 0 with H H
   · rcases Nat.mul_eq_zero.mp H with rfl | rfl
     · obtain rfl : b = 1 := h'
       exact ⟨d₁, by simp⟩
-      done
     · obtain rfl : a = 1 := h'.symm
       exact ⟨c₁, by simp⟩
-      done
   · rw [← mul_assoc, ← mul_assoc, mul_comm b] at h
     obtain rfl := mul_left_cancel₀ H h
     exact ⟨d₁, by simp [mul_comm d₁]⟩
-    done
 
 lemma dom_of_proportional (d : ℕ) [NeZero d] {a b a' b' : ℕ} (hab : a ≠ 0 ∨ b ≠ 0) (hc : a'.Coprime b')
     (h : a' * b = b' * a) :
