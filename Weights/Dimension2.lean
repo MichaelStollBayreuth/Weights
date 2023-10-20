@@ -410,26 +410,58 @@ lemma dom_of_mem_interior_right (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInter
         rw [h₁, h₂, pair'_of_fraction_add, Pi.add_apply, pair'_of_fraction_mul, pair'_of_fraction_mul]
   done
 
-lemma dom_of_proportional (d : ℕ) [NeZero d] {a b a' b' : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) (hc : a'.coprime b')
-    (h : a * b' = b * a') :
+/-- Helper lemma that might go into Mathlib -/
+lemma proportional {a b c d : ℕ} (h : a * d = b * c) (h' : Nat.Coprime a b) :
+    ∃ m, c = m * a ∧ d = m * b := by
+  obtain ⟨c₁, hc⟩ := (Nat.Coprime.dvd_mul_left h').mp <| Dvd.intro d h
+  obtain ⟨d₁, hd⟩ := (Nat.Coprime.dvd_mul_left h'.symm).mp <| Dvd.intro c h.symm
+  rw [hc, hd] at h ⊢ 
+  cases' eq_or_ne (a * b) 0 with H H
+  · rcases Nat.mul_eq_zero.mp H with rfl | rfl
+    · obtain rfl : b = 1 := h'
+      exact ⟨d₁, by simp⟩
+      done
+    · obtain rfl : a = 1 := h'.symm
+      exact ⟨c₁, by simp⟩
+      done
+  · rw [← mul_assoc, ← mul_assoc, mul_comm b] at h
+    obtain rfl := mul_left_cancel₀ H h
+    exact ⟨d₁, by simp [mul_comm d₁]⟩
+    done
+
+lemma dom_of_proportional (d : ℕ) [NeZero d] {a b a' b' : ℕ} (hab : a ≠ 0 ∨ b ≠ 0) (hc : a'.Coprime b')
+    (h : a' * b = b' * a) :
     of_fraction d a' b' ≤d of_fraction d a b := by
+  obtain ⟨m, ha, hb⟩ := proportional h hc
+  have hmz : m ≠ 0
+  · rcases hab with haz | hbz
+    · rw [ha] at haz
+      exact left_ne_zero_of_mul haz
+    · rw [hb] at hbz
+      exact left_ne_zero_of_mul hbz
+  have hm : (1 : ℤ) ≤ m := Int.toNat_le.mp <| Nat.one_le_iff_ne_zero.mpr hmz
   apply dom_of_pair_le
   intro i hi
   simp_rw [pair'_of_fraction] at hi ⊢
-
-  sorry
+  rw [ha, hb, Nat.cast_mul, Nat.cast_mul, mul_assoc, mul_assoc, ← mul_add]
+  generalize ↑a' * v i 2 + ↑b' * (v i 1 + v i 2) = x at hi ⊢ 
+  nlinarith only [hi, hm]
   done
 
 /-- Lemma 4.1. If `I = [a₁/b₁, a₂/b₂]` is a basic interval such that
 `I ∩ S_≤ ⊆ {a₂/b₂}` or `I ∩ S_≥ ⊆ {a₁/b₁}`, then the weight vector associated to any fraction
 in `I` is dominated by the weight vector associated to one endpoint of `I`.-/
-lemma dom_of_mem (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterval} (ha : a ≠ 0) (hb : b ≠ 0) (hm : mem a b I)
+lemma dom_of_mem (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterval} (hab : a ≠ 0 ∨ b ≠ 0) (hm : mem a b I)
     (h : (∀ (a' b' : ℕ), mem_S_le d a' b' → mem a' b' I → a' * I.b₂ = b' * I.a₂) ∨
          ∀ (a' b' : ℕ), mem_S_ge d a' b' → mem a' b' I → a' * I.b₁ = b' * I.a₁) :
     of_fraction d I.a₁ I.b₁ ≤d of_fraction d a b ∨ of_fraction d I.a₂ I.b₂ ≤d of_fraction d a b := by
+  have help : ∀ {a b c d : ℕ}, a * b = c * d → d * c = b * a
+  · intro a b c d hyp
+    rw [mul_comm b, mul_comm d, hyp]
+    done
   rcases eq_or_eq_or_mem_interior_of_mem hm with H | H | H
-  · exact Or.inl <| dom_of_proportional d ha hb H 
-  · exact Or.inr <| dom_of_proportional d ha hb H
+  · exact Or.inl <| dom_of_proportional d hab I.coprime₁ <| help H 
+  · exact Or.inr <| dom_of_proportional d hab I.coprime₂ <| help H
   · rcases h with h | h
     · exact Or.inl <| dom_of_mem_interior_left d H h
     · exact Or.inr <| dom_of_mem_interior_right d H h
