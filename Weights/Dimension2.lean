@@ -463,4 +463,25 @@ lemma dom_of_mem (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterval} (hab : a �
     · exact Or.inr <| dom_of_mem_interior_right d H h
   done
 
+/-- A feasible basic interval `I = [a₁/b₁, a₂/b₂]` satisfies the condition
+`I ∩ S_≤ ⊆ {a₂/b₂}` or `I ∩ S_≥ ⊆ {a₁/b₁}`. -/
+lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.feasible d) :
+    (∀ (a' b' : ℕ), mem_S_le d a' b' → mem a' b' I → a' * I.b₂ = b' * I.a₂) ∨
+    ∀ (a' b' : ℕ), mem_S_ge d a' b' → mem a' b' I → a' * I.b₁ = b' * I.a₁ := by
+  sorry
+  done
+
+/-- Every weight vector `[0, b, a+b]` is dominated by a weight vector `[0, t, s+t]` with `s + t ≤ d`. -/
+theorem dom_by_max_le_d (d : ℕ) [NeZero d] (a b : ℕ) :
+    ∃ s t : ℕ, s + t ≤ d ∧ of_fraction d s t ≤d of_fraction d a b := by
+  cases' le_or_lt (a + b) d with h h
+  · -- case `a + b ≤ d`: vector dominates itself
+    exact ⟨a, b, h, Eq.le rfl⟩
+  · -- case `a + b > d`. Get feasible interval that contains `a/b`.
+    obtain ⟨I, hI, hIab⟩ := mem_feasible d a b
+    have hab : a ≠ 0 ∨ b ≠ 0 := by by_contra' hab; linarith
+    cases' dom_of_mem d hab hIab (condition_of_feasible hI) with H H
+    · exact ⟨I.a₁, I.b₁, hI.1, H⟩
+    · exact ⟨I.a₂, I.b₂, hI.2.1, H⟩
+
 end Weight
