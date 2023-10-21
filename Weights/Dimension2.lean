@@ -313,6 +313,67 @@ lemma mem_S_ge_of_proportional {d g : ℕ} {a b : ℤ} (hg : 0 < g) (h : mem_S_g
   replace hg : (0 : ℤ) < g := Nat.cast_pos.mpr hg
   exact ⟨(zero_lt_mul_right hg).mp h₁, i₁, i₂, h', h₂, h₃, Int.eq_of_mul_eq_mul_left hg.ne' h₄⟩
 
+example (a b : ℕ) (h : a ≤ b) : (b - a : ℤ) = (b - a : ℕ) := (Int.ofNat_sub h).symm
+example (a b c : ℕ) : a - b - c = a - (b + c) := Nat.sub_sub a b c
+example (a b c : ℤ) : a - b - c = a - (b + c) := Int.sub_sub a b c
+example (a : ℕ) : (2 : ℤ) * a = (2 * a : ℕ) := by rw?
+
+lemma add_le_delta_of_mem_S_le {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSle : mem_S_le (3 * δ) a b) :
+    a + b ≤ δ := by
+  obtain ⟨_, i₁, i₂, hi₁, hi₂, hSle⟩ := hSle
+  rw [← mul_add, ← mul_assoc, mul_comm 2, mul_assoc] at hi₁
+  replace hi₁ := (mul_le_mul_left (by norm_num)).mp hi₁
+  replace hi₂ := (mul_lt_mul_left (by norm_num)).mp hi₂
+  obtain ⟨x₁, Hx₁⟩ : ∃ x : ℕ, (x : ℤ) = 2 * δ - i₁ - i₂ :=
+    ⟨2 * δ - i₁ -i₂, by rw [Nat.sub_sub, Int.sub_sub]; norm_cast⟩
+  obtain ⟨x₂, Hx₂, Hx₂'⟩ : ∃ x : ℕ, (x : ℤ) = i₂ - δ ∧ 0 < x :=
+    ⟨i₂ - δ, by have := hi₂.le; norm_cast, Nat.sub_pos_of_lt hi₂⟩
+  have hx : x₁ + x₂ ≤ δ := by linarith
+  push_cast at hSle
+  rw [(by rw [Hx₂]; ring : (a : ℤ) * (3 * i₂ - 3 * δ) = 3 * (a * x₂)),
+      (by rw [Hx₁]; ring : (b : ℤ) * (2 * (3 * δ) - 3 * i₁ - 3 * i₂) = 3 * (b * x₁))] at hSle
+  replace hSle := mul_left_cancel₀ (by norm_num) hSle
+  norm_cast at hSle
+  have ha : a ≤ x₁
+  · cases' eq_or_ne x₁ 0 with H H
+    · simp only [H, mul_zero, mul_eq_zero] at hSle
+      -- `hSle : a = 0 ∨ x₂ = 0`
+      rcases hSle with rfl | rfl
+      · exact Nat.zero_le _
+      · exact False.elim <| Nat.lt_irrefl _ Hx₂'
+    exact Nat.le_of_dvd (Nat.pos_of_ne_zero H) <| hcop.dvd_of_dvd_mul_left <| Dvd.intro (Int.toNat x₂) hSle
+  have hb : b ≤ x₂ :=
+    Nat.le_of_dvd Hx₂' <| hcop.symm.dvd_of_dvd_mul_left <| Dvd.intro (Int.toNat x₁) hSle.symm
+  linarith
+  done
+
+lemma le_delta_of_mem_S_ge {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSge : mem_S_ge (3 * δ) a b) :
+    a ≤ δ ∧ b ≤ δ := by
+  obtain ⟨_, i₁, i₂, hi₀, hi₁, hi₂, hSle⟩ := hSge
+  rw [← mul_add, ← mul_assoc, mul_comm 2, mul_assoc] at hi₁
+  replace hi₁ := (mul_lt_mul_left (by norm_num)).mp hi₁
+  replace hi₂ := (mul_le_mul_left (by norm_num)).mp hi₂
+  obtain ⟨x₁, Hx₁, Hx₁'⟩ : ∃ x : ℕ, (x : ℤ) = i₁ + i₂ - 2 * δ ∧ 0 < x:=
+    ⟨i₁ + i₂ - 2 * δ, by have := hi₁.le; norm_cast, Nat.sub_pos_of_lt hi₁⟩
+  obtain ⟨x₂, Hx₂⟩ : ∃ x : ℕ, (x : ℤ) = δ - i₂ := ⟨δ - i₂, by norm_cast⟩
+  have hx₁ : x₁ ≤ δ := by linarith
+  have hx₂ : x₂ ≤ δ := by linarith
+  push_cast at hSle
+  rw [(by rw [Hx₂]; ring : (a : ℤ) * (3 * i₂ - 3 * δ) = (-3) * (a * x₂)),
+      (by rw [Hx₁]; ring : (b : ℤ) * (2 * (3 * δ) - 3 * i₁ - 3 * i₂) = (-3) * (b * x₁))] at hSle
+  replace hSle := mul_left_cancel₀ (by norm_num) hSle
+  norm_cast at hSle
+  have ha : a ≤ x₁ := Nat.le_of_dvd Hx₁' <| hcop.dvd_of_dvd_mul_left <| Dvd.intro x₂ hSle
+  have hb : b ≤ x₂
+  · cases' eq_or_ne x₂ 0 with H H
+    · simp only [H, mul_zero, zero_eq_mul] at hSle 
+      -- `hSle : b = 0 ∨ x₁ = 0`
+      rcases hSle with rfl | rfl
+      · exact Nat.zero_le _
+      · exact False.elim <| Nat.lt_irrefl _ Hx₁'
+    exact Nat.le_of_dvd (Nat.pos_of_ne_zero H) <| hcop.symm.dvd_of_dvd_mul_left <| Dvd.intro x₁ hSle.symm
+  exact ⟨ha.trans hx₁, hb.trans hx₂⟩
+
 open BasicInterval
 
 /-- If `I = [a₁/b₁, a₂/b₂]` is a basic interval such that `I ∩ S_≤ ⊆ {a₂/b₂}`,
@@ -518,9 +579,17 @@ lemma condition_iff_weaker_ge (d : ℕ) [NeZero d] (I : BasicInterval) :
   congr 1
   exact H a' b' hcop H₁ H₂
 
+lemma eq_and_eq_of_coprime_coprime_mul_eq_mul {a b c d : ℕ} (hab : Nat.Coprime a b) (hcd : Nat.Coprime c d)
+    (h : a * d = b * c) :
+    a = c ∧ b = d :=
+  ⟨Nat.dvd_antisymm (hab.dvd_of_dvd_mul_left <| Dvd.intro d h)
+                    (hcd.dvd_of_dvd_mul_right <| Dvd.intro_left b h.symm),
+   Nat.dvd_antisymm (hab.symm.dvd_of_dvd_mul_left <| Dvd.intro c h.symm)
+                    (hcd.symm.dvd_of_dvd_mul_right <| Dvd.intro_left a h)⟩
+
 lemma condition_of_feasible_help₁ {δ : ℕ} [NeZero (3 * δ)] {I : BasicInterval} (hI : I.feasible (3 * δ))
     {a b : ℕ} (hcop : Nat.Coprime a b) (hSle : mem_S_le (3 * δ) a b) (hmem : mem a b I)
-    (hne : a * I.b₂ ≠ b * I.a₂) : a * I.b₁ = b * I.a₁ := by
+    (hne : a * I.b₂ ≠ b * I.a₂) : a = I.a₁ ∧ b = I.b₁ := by
   obtain ⟨_, i₁, i₂, hi₁, hi₂, hSle⟩ := hSle
   rw [← mul_add, ← mul_assoc, mul_comm 2, mul_assoc] at hi₁
   replace hi₁ := (mul_le_mul_left (by norm_num)).mp hi₁
@@ -558,10 +627,17 @@ lemma condition_of_feasible_help₁ {δ : ℕ} [NeZero (3 * δ)] {I : BasicInter
       _ ≤ δ        := by rwa [← Nat.cast_le (α := ℤ), Int.toNat_of_nonneg hx₂.le]
     done    
   -- show that `s₁/t₁` must be left endpoint
+  refine eq_and_eq_of_coprime_coprime_mul_eq_mul hcop I.coprime₁ ?_
   rcases eq_or_eq_or_mem_interior_of_mem hmem with left | right | interior
   · exact left
   · contradiction
   · linarith only [gt_of_mem_interior_feasible hI interior, ha, hb]
+  done
+
+lemma condition_of_feasible_help₂ {δ : ℕ} [NeZero (3 * δ)] {I : BasicInterval} (hI : I.feasible (3 * δ))
+    {a b : ℕ} (hcop : Nat.Coprime a b) (hSge : mem_S_ge (3 * δ) a b) (hmem : mem a b I)
+    (hne : a * I.b₁ ≠ b * I.a₁) : a = I.a₁ ∧ b = I.b₂ := by
+  sorry
   done
 
 /-- A feasible basic interval `I = [a₁/b₁, a₂/b₂]` satisfies the condition
@@ -576,9 +652,15 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
     by_contra' H
     obtain ⟨⟨s₁, t₁, hcop₁, hSle, hmem₁, hne₁⟩, ⟨s₂, t₂, hcop₂, hSge, hmem₂, hne₂⟩⟩ := H
     -- `s₁/t₁` must be left endpoint
-    have s₁t₁left : s₁ * I.b₁ = t₁ * I.a₁ := condition_of_feasible_help₁ hI hcop₁ hSle hmem₁ hne₁
+    obtain ⟨hs₁a₁, ht₁b₁⟩ := condition_of_feasible_help₁ hI hcop₁ hSle hmem₁ hne₁
     -- `s₂/t₂` must be right endpoint
-    
+    obtain ⟨hs₂a₂, ht₂b₂⟩ := condition_of_feasible_help₂ hI hcop₂ hSge hmem₂ hne₂
+    refine False.elim <| Nat.lt_irrefl (3 * δ) ?_
+    calc
+      3 * δ < I.a₁ + I.a₂ + I.b₁ + I.b₂ := hI.2.2
+      _     = (I.a₁ + I.b₁) + (I.a₂ + I.b₂) := by abel
+
+      _     ≤ _ := sorry
     done
   sorry
   done
