@@ -313,11 +313,7 @@ lemma mem_S_ge_of_proportional {d g : ℕ} {a b : ℤ} (hg : 0 < g) (h : mem_S_g
   replace hg : (0 : ℤ) < g := Nat.cast_pos.mpr hg
   exact ⟨(zero_lt_mul_right hg).mp h₁, i₁, i₂, h', h₂, h₃, Int.eq_of_mul_eq_mul_left hg.ne' h₄⟩
 
-example (a b : ℕ) (h : a ≤ b) : (b - a : ℤ) = (b - a : ℕ) := (Int.ofNat_sub h).symm
-example (a b c : ℕ) : a - b - c = a - (b + c) := Nat.sub_sub a b c
-example (a b c : ℤ) : a - b - c = a - (b + c) := Int.sub_sub a b c
-example (a : ℕ) : (2 : ℤ) * a = (2 * a : ℕ) := by rw?
-
+/-- If `d = 3*δ` is divisble by `3` and `a/b ∈ S_≤` in lowest terms, then `a + b ≤ δ`. -/
 lemma add_le_delta_of_mem_S_le {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSle : mem_S_le (3 * δ) a b) :
     a + b ≤ δ := by
   obtain ⟨_, i₁, i₂, hi₁, hi₂, hSle⟩ := hSle
@@ -347,6 +343,7 @@ lemma add_le_delta_of_mem_S_le {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSle : m
   linarith
   done
 
+/-- If `d = 3*δ` is divisble by `3` and `a/b ∈ S_≥` in lowest terms, then `a ≤ δ` and `b ≤ δ`. -/
 lemma le_delta_of_mem_S_ge {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSge : mem_S_ge (3 * δ) a b) :
     a ≤ δ ∧ b ≤ δ := by
   obtain ⟨_, i₁, i₂, hi₀, hi₁, hi₂, hSle⟩ := hSge
@@ -590,54 +587,23 @@ lemma eq_and_eq_of_coprime_coprime_mul_eq_mul {a b c d : ℕ} (hab : Nat.Coprime
 lemma condition_of_feasible_help₁ {δ : ℕ} [NeZero (3 * δ)] {I : BasicInterval} (hI : I.feasible (3 * δ))
     {a b : ℕ} (hcop : Nat.Coprime a b) (hSle : mem_S_le (3 * δ) a b) (hmem : mem a b I)
     (hne : a * I.b₂ ≠ b * I.a₂) : a = I.a₁ ∧ b = I.b₁ := by
-  obtain ⟨_, i₁, i₂, hi₁, hi₂, hSle⟩ := hSle
-  rw [← mul_add, ← mul_assoc, mul_comm 2, mul_assoc] at hi₁
-  replace hi₁ := (mul_le_mul_left (by norm_num)).mp hi₁
-  replace hi₂ := (mul_lt_mul_left (by norm_num)).mp hi₂
-  set x₁ : ℤ := 2 * δ - i₁ - i₂ with hx₁eq
-  set x₂ : ℤ := i₂ - δ with hx₂eq
-  have hx₁ : 0 ≤ x₁ := by rw [hx₁eq]; linarith only [hi₁]
-  have hx₁' : x₁ ≤ 2 * δ := by rw [hx₁eq]; linarith only [hi₁]
-  have hx₂ : 0 < x₂ := by rw [hx₂eq]; linarith only [hi₂]
-  have hx₂' : x₂ ≤ δ := by rw [hx₂eq]; linarith
-  push_cast at hSle
-  rw [(by ring : (a : ℤ) * (3 * i₂ - 3 * δ) = 3 * (a * x₂)),
-      (by ring : (b : ℤ) * (2 * (3 * δ) - 3 * i₁ - 3 * i₂) = 3 * (b * x₁))] at hSle
-  replace hSle := mul_left_cancel₀ (by norm_num) hSle
-  rw [← Int.toNat_of_nonneg hx₁, ← Int.toNat_of_nonneg hx₂.le, ← Nat.cast_mul, ← Nat.cast_mul,
-      Int.ofNat_inj] at hSle
-  have ha : a ≤ 2 * δ
-  · cases' eq_or_ne x₁ 0 with H H
-    · simp only [H, Int.toNat_zero, mul_zero, mul_eq_zero, Int.toNat_eq_zero, tsub_le_iff_right,
-                 zero_add, Nat.cast_le] at hSle
-      -- `hSle₁ : a = 0 ∨ i₂ ≤ δ`
-      rcases hSle with rfl | HH
-      · exact Nat.zero_le _
-      · exact False.elim <| Nat.lt_irrefl δ <| hi₂.trans_le HH
-    have : 0 < x₁.toNat := Int.lt_toNat.mpr <| Ne.lt_of_le H.symm hx₁
-    calc
-      a ≤ x₁.toNat := Nat.le_of_dvd this <| hcop.dvd_of_dvd_mul_left <| Dvd.intro (Int.toNat x₂) hSle
-      _ ≤ 2 * δ    := by rwa [← Nat.cast_le (α := ℤ), Int.toNat_of_nonneg hx₁]
-    done 
-  have hb : b ≤ δ
-  · have : 0 < x₂.toNat := Int.lt_toNat.mpr hx₂
-    calc
-      b ≤ x₂.toNat := Nat.le_of_dvd this <| hcop.symm.dvd_of_dvd_mul_left <|
-                         Dvd.intro (Int.toNat x₁) hSle.symm
-      _ ≤ δ        := by rwa [← Nat.cast_le (α := ℤ), Int.toNat_of_nonneg hx₂.le]
-    done    
-  -- show that `s₁/t₁` must be left endpoint
+  have bound := add_le_delta_of_mem_S_le hcop hSle
   refine eq_and_eq_of_coprime_coprime_mul_eq_mul hcop I.coprime₁ ?_
   rcases eq_or_eq_or_mem_interior_of_mem hmem with left | right | interior
   · exact left
   · contradiction
-  · linarith only [gt_of_mem_interior_feasible hI interior, ha, hb]
+  · linarith only [gt_of_mem_interior_feasible hI interior, bound]
   done
 
 lemma condition_of_feasible_help₂ {δ : ℕ} [NeZero (3 * δ)] {I : BasicInterval} (hI : I.feasible (3 * δ))
     {a b : ℕ} (hcop : Nat.Coprime a b) (hSge : mem_S_ge (3 * δ) a b) (hmem : mem a b I)
-    (hne : a * I.b₁ ≠ b * I.a₁) : a = I.a₁ ∧ b = I.b₂ := by
-  sorry
+    (hne : a * I.b₁ ≠ b * I.a₁) : a = I.a₂ ∧ b = I.b₂ := by
+  obtain ⟨ha, hb⟩ := le_delta_of_mem_S_ge hcop hSge
+  refine eq_and_eq_of_coprime_coprime_mul_eq_mul hcop I.coprime₂ ?_
+  rcases eq_or_eq_or_mem_interior_of_mem hmem with left | right | interior
+  · contradiction
+  · exact right
+  · linarith only [gt_of_mem_interior_feasible hI interior, ha, hb]
   done
 
 /-- A feasible basic interval `I = [a₁/b₁, a₂/b₂]` satisfies the condition
@@ -653,24 +619,23 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
     obtain ⟨⟨s₁, t₁, hcop₁, hSle, hmem₁, hne₁⟩, ⟨s₂, t₂, hcop₂, hSge, hmem₂, hne₂⟩⟩ := H
     -- `s₁/t₁` must be left endpoint
     obtain ⟨hs₁a₁, ht₁b₁⟩ := condition_of_feasible_help₁ hI hcop₁ hSle hmem₁ hne₁
+    have hs₁t₁ := add_le_delta_of_mem_S_le hcop₁ hSle
     -- `s₂/t₂` must be right endpoint
     obtain ⟨hs₂a₂, ht₂b₂⟩ := condition_of_feasible_help₂ hI hcop₂ hSge hmem₂ hne₂
+    obtain ⟨hs₁, ht₂⟩ := le_delta_of_mem_S_ge hcop₂ hSge
+    -- now obtain contradiction
     refine False.elim <| Nat.lt_irrefl (3 * δ) ?_
     calc
-      3 * δ < I.a₁ + I.a₂ + I.b₁ + I.b₂ := hI.2.2
+      3 * δ < I.a₁ + I.a₂ + I.b₁ + I.b₂     := hI.2.2
       _     = (I.a₁ + I.b₁) + (I.a₂ + I.b₂) := by abel
-
-      _     ≤ _ := sorry
+      _     = (s₁ + t₁) + (s₂ + t₂)         := by symm; congr
+      _     ≤  δ + (δ + δ)                  := by gcongr
+      _     = _                             := by ring
     done
+  -- Now deal with the case that `d` is not divisible by 3
   sorry
   done
 
--- gt_of_mem_interior_feasible
-example (a b : ℕ) (h : a ∣ b) (h' : 0 < b): a ≤ b := Nat.le_of_dvd h' h
-
-
-#check Nat.exists_coprime
-#check Nat.exists_coprime'
 /-- Every weight vector `[0, b, a+b]` is dominated by a weight vector `[0, t, s+t]` with `s + t ≤ d`. -/
 theorem dom_by_max_le_d (d : ℕ) [NeZero d] (a b : ℕ) :
     ∃ s t : ℕ, s + t ≤ d ∧ of_fraction d s t ≤d of_fraction d a b := by
