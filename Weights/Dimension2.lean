@@ -518,6 +518,51 @@ lemma condition_iff_weaker_ge (d : ℕ) [NeZero d] (I : BasicInterval) :
   congr 1
   exact H a' b' hcop H₁ H₂
 
+lemma condition_of_feasible_help₁ {δ : ℕ} [NeZero (3 * δ)] {I : BasicInterval} (hI : I.feasible (3 * δ))
+    {a b : ℕ} (hcop : Nat.Coprime a b) (hSle : mem_S_le (3 * δ) a b) (hmem : mem a b I)
+    (hne : a * I.b₂ ≠ b * I.a₂) : a * I.b₁ = b * I.a₁ := by
+  obtain ⟨_, i₁, i₂, hi₁, hi₂, hSle⟩ := hSle
+  rw [← mul_add, ← mul_assoc, mul_comm 2, mul_assoc] at hi₁
+  replace hi₁ := (mul_le_mul_left (by norm_num)).mp hi₁
+  replace hi₂ := (mul_lt_mul_left (by norm_num)).mp hi₂
+  set x₁ : ℤ := 2 * δ - i₁ - i₂ with hx₁eq
+  set x₂ : ℤ := i₂ - δ with hx₂eq
+  have hx₁ : 0 ≤ x₁ := by rw [hx₁eq]; linarith only [hi₁]
+  have hx₁' : x₁ ≤ 2 * δ := by rw [hx₁eq]; linarith only [hi₁]
+  have hx₂ : 0 < x₂ := by rw [hx₂eq]; linarith only [hi₂]
+  have hx₂' : x₂ ≤ δ := by rw [hx₂eq]; linarith
+  push_cast at hSle
+  rw [(by ring : (a : ℤ) * (3 * i₂ - 3 * δ) = 3 * (a * x₂)),
+      (by ring : (b : ℤ) * (2 * (3 * δ) - 3 * i₁ - 3 * i₂) = 3 * (b * x₁))] at hSle
+  replace hSle := mul_left_cancel₀ (by norm_num) hSle
+  rw [← Int.toNat_of_nonneg hx₁, ← Int.toNat_of_nonneg hx₂.le, ← Nat.cast_mul, ← Nat.cast_mul,
+      Int.ofNat_inj] at hSle
+  have ha : a ≤ 2 * δ
+  · cases' eq_or_ne x₁ 0 with H H
+    · simp only [H, Int.toNat_zero, mul_zero, mul_eq_zero, Int.toNat_eq_zero, tsub_le_iff_right,
+                 zero_add, Nat.cast_le] at hSle
+      -- `hSle₁ : a = 0 ∨ i₂ ≤ δ`
+      rcases hSle with rfl | HH
+      · exact Nat.zero_le _
+      · exact False.elim <| Nat.lt_irrefl δ <| hi₂.trans_le HH
+    have : 0 < x₁.toNat := Int.lt_toNat.mpr <| Ne.lt_of_le H.symm hx₁
+    calc
+      a ≤ x₁.toNat := Nat.le_of_dvd this <| hcop.dvd_of_dvd_mul_left <| Dvd.intro (Int.toNat x₂) hSle
+      _ ≤ 2 * δ    := by rwa [← Nat.cast_le (α := ℤ), Int.toNat_of_nonneg hx₁]
+    done 
+  have hb : b ≤ δ
+  · have : 0 < x₂.toNat := Int.lt_toNat.mpr hx₂
+    calc
+      b ≤ x₂.toNat := Nat.le_of_dvd this <| hcop.symm.dvd_of_dvd_mul_left <|
+                         Dvd.intro (Int.toNat x₁) hSle.symm
+      _ ≤ δ        := by rwa [← Nat.cast_le (α := ℤ), Int.toNat_of_nonneg hx₂.le]
+    done    
+  -- show that `s₁/t₁` must be left endpoint
+  rcases eq_or_eq_or_mem_interior_of_mem hmem with left | right | interior
+  · exact left
+  · contradiction
+  · linarith only [gt_of_mem_interior_feasible hI interior, ha, hb]
+  done
 
 /-- A feasible basic interval `I = [a₁/b₁, a₂/b₂]` satisfies the condition
 `I ∩ S_≤ ⊆ {a₂/b₂}` or `I ∩ S_≥ ⊆ {a₁/b₁}`. -/
@@ -530,12 +575,17 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
     obtain ⟨δ, rfl⟩ := hd
     by_contra' H
     obtain ⟨⟨s₁, t₁, hcop₁, hSle, hmem₁, hne₁⟩, ⟨s₂, t₂, hcop₂, hSge, hmem₂, hne₂⟩⟩ := H
-    unfold mem_S_le at hSle
-    unfold mem at hmem₁
-    unfold feasible at hI
+    -- `s₁/t₁` must be left endpoint
+    have s₁t₁left : s₁ * I.b₁ = t₁ * I.a₁ := condition_of_feasible_help₁ hI hcop₁ hSle hmem₁ hne₁
+    -- `s₂/t₂` must be right endpoint
+    
     done
   sorry
   done
+
+-- gt_of_mem_interior_feasible
+example (a b : ℕ) (h : a ∣ b) (h' : 0 < b): a ≤ b := Nat.le_of_dvd h' h
+
 
 #check Nat.exists_coprime
 #check Nat.exists_coprime'
