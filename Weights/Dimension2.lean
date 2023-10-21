@@ -529,9 +529,8 @@ lemma dom_of_mem (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterval} (hab : a �
     (h : (∀ (a' b' : ℕ), mem_S_le d a' b' → mem a' b' I → a' * I.b₂ = b' * I.a₂) ∨
          ∀ (a' b' : ℕ), mem_S_ge d a' b' → mem a' b' I → a' * I.b₁ = b' * I.a₁) :
     of_fraction d I.a₁ I.b₁ ≤d of_fraction d a b ∨ of_fraction d I.a₂ I.b₂ ≤d of_fraction d a b := by
-  have help : ∀ {a b c d : ℕ}, a * b = c * d → d * c = b * a
-  · intro a b c d hyp
-    rw [mul_comm b, mul_comm d, hyp]
+  have help {a b c d : ℕ} (hyp : a * b = c * d) : d * c = b * a
+  · rw [mul_comm b, mul_comm d, hyp]
     done
   rcases eq_or_eq_or_mem_interior_of_mem hm with H | H | H
   · exact Or.inl <| dom_of_proportional d hab I.coprime₁ <| help H 
