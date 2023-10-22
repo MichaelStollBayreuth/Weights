@@ -44,4 +44,4 @@ element $(0,1,\ldots,1)$ (`Weight.w1_unique`).
 
 The second main result is a proof of **Theorem 1.6** in the paper, which says that
 in the case $n = 2$, the weights in a minimal complete set of normalized weights
-have entries bounded by the degree $d$. See `Weight.dom_by_max_le_d`.
+have entries bounded by the degree $d$. See `Weight.dom_by_max_le_d` and `Weight.theorem_1_6`.
