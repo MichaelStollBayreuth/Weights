@@ -195,7 +195,7 @@ lemma exists_of_mem {a b : ℕ} {I : BasicInterval} (h : mem a b I) :
     refine ⟨k₁, k₂, ?_, ?_⟩ <;> linarith
     done
 
-/-- A fraction `a/b` that lies in a basic interval `[a₁/b₁, a₂/b₂]` satisfies
+/-- A fraction `a/b` that lies in the interior of a basic interval `[a₁/b₁, a₂/b₂]` satisfies
 `a = k₁ a₁ + k₂ a₂` and `b = k₁ b₁ + k₂ b₂` for some positive natural numbers `k₁` and `k₂`. -/
 lemma exists_of_mem_interior {a b : ℕ} {I : BasicInterval}  (h : mem_interior a b I) :
     ∃ k₁ k₂ : ℕ, 0 < k₁ ∧ 0 < k₂ ∧ a = k₁ * I.a₁ + k₂ * I.a₂ ∧ b = k₁ * I.b₁ + k₂ * I.b₂ := by
