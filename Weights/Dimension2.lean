@@ -10,8 +10,6 @@ We attempt a formalization of Theorem 1.6 in the paper, which says that in the c
 the weights in a minimal complete set of weight vectors have entries bounded by `d`.
 -/
 
-
-
 /-- The normalized weight vector of dimension `n = 2` associated to a fraction `a/b` -/
 def of_fraction (d a b : ℕ) : Weight 2 d := ![0, b, a + b]
 
@@ -97,6 +95,13 @@ lemma add_le_delta_of_mem_S_le {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSle : m
   linarith
   done
 
+/-- If `d` is not divisible by `3` and `a/b ∈ S_≤` in lowest terms,
+then either `a ≡ b ≡ -d mod 3` and `a + b ≤ d` or `a ≡ b ≡ d mod 3` and `a + b ≤ d/2`. -/
+lemma add_le_of_mem_S_le {d a b : ℕ} (hd : ¬ 3 ∣ d) (hcop : Nat.Coprime a b) (hSle : mem_S_le d a b) :
+    (a : ZMod 3) = b ∧ ((a : ZMod 3) = -d ∧ a + b ≤ d ∨ (a : ZMod 3) = d ∧ a + b ≤ d / 2) := by
+  sorry
+  done 
+
 /-- If `d = 3*δ` is divisble by `3` and `a/b ∈ S_≥` in lowest terms, then `a ≤ δ` and `b ≤ δ`. -/
 lemma le_delta_of_mem_S_ge {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSge : mem_S_ge (3 * δ) a b) :
     a ≤ δ ∧ b ≤ δ := by
@@ -124,6 +129,13 @@ lemma le_delta_of_mem_S_ge {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSge : mem_S
       · exact False.elim <| Nat.lt_irrefl _ Hx₁'
     exact Nat.le_of_dvd (Nat.pos_of_ne_zero H) <| hcop.symm.dvd_of_dvd_mul_left <| Dvd.intro x₁ hSle.symm
   exact ⟨ha.trans hx₁, hb.trans hx₂⟩
+
+/-- If `d` is not divisible by `3` and `a/b ∈ S_≥` in lowest terms,
+then either `a ≡ b ≡ d mod 3` and `a, b ≤ d` or `a ≡ b ≡ -d mod 3` and `a, b ≤ d/2`. -/
+lemma le_of_mem_S_ge {d a b : ℕ} (hd : ¬ 3 ∣ d) (hcop : Nat.Coprime a b) (hSle : mem_S_ge d a b) :
+    (a : ZMod 3) = b ∧ ((a : ZMod 3) = d ∧ a ≤ d ∧ b ≤ d ∨ (a : ZMod 3) = -d ∧ a ≤ d / 2 ∧ b ≤ d / 2) := by
+  sorry
+  done 
 
 open BasicInterval
 
