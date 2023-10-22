@@ -32,5 +32,15 @@ lemma eq_and_eq_of_coprime_coprime_mul_eq_mul {a b c d : ℕ} (hab : Nat.Coprime
    Nat.dvd_antisymm (hab.symm.dvd_of_dvd_mul_left <| Dvd.intro c h.symm)
                     (hcd.symm.dvd_of_dvd_mul_right <| Dvd.intro_left a h)⟩
 
+lemma eq_one_of_coprime_mul_mul {a b c : ℕ} (h : Nat.Coprime (a * b) (a * c)) : a = 1 :=
+  (Nat.coprime_self a).mp <| Nat.Coprime.coprime_mul_right <| Nat.Coprime.coprime_mul_right_right h
+
+lemma lt_two_mul_of_div_two_lt {a d : ℕ} (h : d / 2 < a) : d < 2 * a := by
+  have : d = 2 * (d / 2) + d % 2 := (Nat.div_add_mod d 2).symm
+  rw [this]
+  change d / 2 + 1 ≤ a at h
+  change 2 * (d / 2) + d % 2 + 1 ≤ 2 * a
+  have : d % 2 < 2 := Nat.mod_lt d (zero_lt_two)
+  linarith
 
 end Weight

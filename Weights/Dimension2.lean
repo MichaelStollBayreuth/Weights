@@ -371,12 +371,107 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
       _     = _                             := by ring
     done
   -- Now deal with the case that `d` is not divisible by 3
-  have hs₁t₁ := add_le_of_mem_S_le hd hcop₁ hSle
-  have hs₂t₂ := le_of_mem_S_ge hd hcop₂ hSge
-  sorry
+  obtain ⟨hs₁t₁mod3, hyp₁⟩ := add_le_of_mem_S_le hd hcop₁ hSle
+  -- `s₁/t₁` must be left endpoint
+  have h' : s₁+ t₁ ≤ d
+  · rcases hyp₁ with ⟨_, hyp⟩ | ⟨_, hyp⟩
+    · exact hyp
+    · exact hyp.trans <| Nat.div_le_self d 2 
+  obtain ⟨hs₁a₁, ht₁b₁⟩ := eq_left_of_add_le hI hcop₁ hmem₁ (by linarith) hne₁
+  -- get bounds for `s₂` and `t₂`
+  obtain ⟨hs₂t₂mod3, hyp₂⟩ := le_of_mem_S_ge hd hcop₂ hSge
+  -- write `(s₂, t₂) = k₁•(I.a₁, I,b₁) + k₂•(I.a₂, I,b₂)`
+  obtain ⟨k₁, k₂, hks₂, hkt₂⟩ := exists_of_mem hmem₂
+  -- A bound for `s₂ + t₂`
+  have hbd : s₂ + t₂ ≤ 2 * d
+  · rcases hyp₂ with ⟨_, H₁, H₂⟩ | ⟨_, H₁, H₂⟩
+    · linarith only [H₁, H₂]
+    · replace H₁ := H₁.trans <| Nat.div_le_self d 2
+      replace H₂ := H₂.trans <| Nat.div_le_self d 2
+      linarith only [H₁, H₂]
+    done
+  have hk₂' : 3 ∣ k₂
+  · rw [← ZMod.nat_cast_zmod_eq_zero_iff_dvd]
+    have : k₂ + t₂ * s₁ = s₂ * t₁
+    · rw [hks₂, hkt₂, hs₁a₁, ht₁b₁]
+      have := I.rel
+      zify at this ⊢
+      linear_combination -(1 * ↑k₂ * this)
+      done 
+    apply_fun (fun z ↦ (z : ZMod 3)) at this
+    push_cast at this
+    simpa only [hs₁t₁mod3, hs₂t₂mod3, add_left_eq_self] using this
+    done
+  have hk₂ : 3 ≤ k₂
+  · refine Nat.le_of_dvd ((Nat.eq_zero_or_pos _).resolve_left ?_) hk₂'
+    rintro rfl
+    rw [hks₂, hkt₂, zero_mul, add_zero, zero_mul, add_zero, Nat.mul_right_comm] at hne₂
+    exact hne₂ rfl
+  have hk₁ : 1 ≤ k₁
+  · refine (Nat.eq_zero_or_pos k₁).resolve_left ?_
+    rintro rfl
+    simp only [zero_mul, zero_add] at hks₂ hkt₂
+    rw [hks₂, hkt₂] at hcop₂
+    linarith only [eq_one_of_coprime_mul_mul hcop₂, hk₂]
+    done
+  have : k₁ = 1 ∨ 2 ≤ k₁ := by rwa [eq_comm, Nat.succ_le, ← le_iff_eq_or_lt]
+  have hbd' : 2 * d < s₂ + t₂
+  · rcases this with rfl | hk₁
+    · have H₁ : d < s₂ + t₂
+      · calc
+          d < I.a₁ + I.a₂ + I.b₁ + I.b₂              := hI.2.2
+          _ = 1 * (I.a₁ + I.b₁) + 1 * (I.a₂ + I.b₂)  := by ring
+          _ ≤ 1 * (I.a₁ + I.b₁) + k₂ * (I.a₂ + I.b₂) := by gcongr; linarith only [hk₂]
+          _ = s₂ + t₂                                := by rw [hks₂, hkt₂]; ring
+        done
+      have Hd : d / 2 + d / 2 ≤ d := by rw [← two_mul]; exact Nat.mul_div_le d 2
+      have H₂ : (s₂ : ZMod 3) = d
+      · rcases hyp₂ with ⟨hmod, _, _⟩ | ⟨_, hle₁, hle₂⟩
+        · exact hmod
+        · exact False.elim <| lt_irrefl d <| H₁.trans_le (by linarith)
+      have H₃ : (s₁ : ZMod 3) = d
+      · have : (k₂ : ZMod 3) = 0 := (ZMod.nat_cast_zmod_eq_zero_iff_dvd k₂ 3).mpr hk₂'
+        apply_fun (fun z ↦ (z : ZMod 3)) at hks₂
+        push_cast at hks₂
+        simp only [H₂, ← hs₁a₁, one_mul, this, zero_mul, add_zero] at hks₂
+        exact hks₂.symm
+      have H₄ : I.a₁ + I.b₁ ≤ d / 2
+      · rw [← hs₁a₁, ← ht₁b₁]
+        rcases hyp₁ with ⟨hmod, hle⟩ | ⟨_, hle⟩
+        · have HH : (d : ZMod 3) = 0
+          · rw [H₃] at hmod
+            have hch : ringChar (ZMod 3) ≠ 2 := by rw [ZMod.ringChar_zmod_n]; norm_num
+            exact (Ring.eq_self_iff_eq_zero_of_char_ne_two hch).mp hmod.symm
+          rw [← ZMod.nat_cast_zmod_eq_zero_iff_dvd] at hd
+          contradiction
+          done
+        · exact hle
+      have : d < 2 * (I.a₂ + I.b₂)
+      · refine lt_two_mul_of_div_two_lt ?_
+        calc
+          d / 2 ≤ d - d / 2         := Nat.le_sub_of_add_le Hd
+          _     ≤ d - (I.a₁ + I.b₁) := Nat.sub_le_sub_left _ H₄
+          _     < I.a₂ + I.b₂       := Nat.sub_lt_left_of_lt_add (H₄.trans <| Nat.div_le_self d 2)
+                                                                 (by convert hI.2.2 using 1; ring)
+        done
+      calc
+        2 * d = d + d := by ring
+        _     < (I.a₁ + I.a₂ + I.b₁ + I.b₂) + 2 * (I.a₂ + I.b₂) := by gcongr; exact hI.2.2
+        _     = 1 * (I.a₁ + I.b₁) + 3 *(I.a₂ + I.b₂)            := by ring
+        _     ≤ 1 * (I.a₁ + I.b₁) + k₂ * (I.a₂ + I.b₂)          := by gcongr
+        _     = s₂ + t₂                                         := by rw [hks₂, hkt₂]; ring
+      done
+    · calc
+        2 * d < 2 * (I.a₁ + I.a₂ + I.b₁ + I.b₂)         := by gcongr; exact hI.2.2
+        _     = 2 * (I.a₁ + I.b₁) + 2 * (I.a₂ + I.b₂)   := by ring
+        _     ≤ k₁ * (I.a₁ + I.b₁) + k₂ * (I.a₂ + I.b₂) := by gcongr; linarith only [hk₂]
+        _     = s₂ + t₂                                 := by rw [hks₂, hkt₂]; ring
+      done
+  exact lt_irrefl _ <| hbd'.trans_le hbd
   done
 
-/-- Every weight vector `[0, b, a+b]` is dominated by a weight vector `[0, t, s+t]` with `s + t ≤ d`. -/
+/-- Every weight vector `[0, b, a+b]` is dominated by a weight vector `[0, t, s+t]`
+ with `s + t ≤ d`. -/
 theorem dom_by_max_le_d (d : ℕ) [NeZero d] (a b : ℕ) :
     ∃ s t : ℕ, s + t ≤ d ∧ of_fraction d s t ≤d of_fraction d a b := by
   cases' le_or_lt (a + b) d with h h
