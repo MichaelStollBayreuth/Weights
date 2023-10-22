@@ -324,26 +324,24 @@ lemma condition_iff_weaker_ge (d : ℕ) [NeZero d] (I : BasicInterval) :
   simp_rw [mul_comm _ g, mul_assoc]
   exact congrArg (g * ·) (H a' b' hcop H₁ H₂)
 
-lemma condition_of_feasible_help₁ {δ : ℕ} [NeZero (3 * δ)] {I : BasicInterval} (hI : I.feasible (3 * δ))
-    {a b : ℕ} (hcop : Nat.Coprime a b) (hSle : mem_S_le (3 * δ) a b) (hmem : mem a b I)
-    (hne : a * I.b₂ ≠ b * I.a₂) : a = I.a₁ ∧ b = I.b₁ := by
-  have bound := add_le_delta_of_mem_S_le hcop hSle
+lemma eq_left_of_add_le {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.feasible d)
+    {a b : ℕ} (hcop : Nat.Coprime a b) (hmem : mem a b I) (hbd : a + b ≤ d) (hne : a * I.b₂ ≠ b * I.a₂) :
+    a = I.a₁ ∧ b = I.b₁ := by
   refine eq_and_eq_of_coprime_coprime_mul_eq_mul hcop I.coprime₁ ?_
   rcases eq_or_eq_or_mem_interior_of_mem hmem with left | right | interior
   · exact left
   · contradiction
-  · linarith only [gt_of_mem_interior_feasible hI interior, bound]
+  · linarith [gt_of_mem_interior_feasible hI interior]
   done
 
-lemma condition_of_feasible_help₂ {δ : ℕ} [NeZero (3 * δ)] {I : BasicInterval} (hI : I.feasible (3 * δ))
-    {a b : ℕ} (hcop : Nat.Coprime a b) (hSge : mem_S_ge (3 * δ) a b) (hmem : mem a b I)
-    (hne : a * I.b₁ ≠ b * I.a₁) : a = I.a₂ ∧ b = I.b₂ := by
-  obtain ⟨ha, hb⟩ := le_delta_of_mem_S_ge hcop hSge
+lemma eq_right_of_add_le {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.feasible d)
+    {a b : ℕ} (hcop : Nat.Coprime a b) (hmem : mem a b I) (hbd : a + b ≤ d) (hne : a * I.b₁ ≠ b * I.a₁) :
+    a = I.a₂ ∧ b = I.b₂ := by
   refine eq_and_eq_of_coprime_coprime_mul_eq_mul hcop I.coprime₂ ?_
   rcases eq_or_eq_or_mem_interior_of_mem hmem with left | right | interior
   · contradiction
   · exact right
-  · linarith only [gt_of_mem_interior_feasible hI interior, ha, hb]
+  · linarith [gt_of_mem_interior_feasible hI interior]
   done
 
 /-- A feasible basic interval `I = [a₁/b₁, a₂/b₂]` satisfies the condition
@@ -352,17 +350,17 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
     (∀ (a' b' : ℕ), mem_S_le d a' b' → mem a' b' I → a' * I.b₂ = b' * I.a₂) ∨
     ∀ (a' b' : ℕ), mem_S_ge d a' b' → mem a' b' I → a' * I.b₁ = b' * I.a₁ := by
   rw [← condition_iff_weaker_le, ← condition_iff_weaker_ge]
+  by_contra' H
+  obtain ⟨⟨s₁, t₁, hcop₁, hSle, hmem₁, hne₁⟩, ⟨s₂, t₂, hcop₂, hSge, hmem₂, hne₂⟩⟩ := H
   by_cases hd : 3 ∣ d
   · -- case `d` is divisble by 3
     obtain ⟨δ, rfl⟩ := hd
-    by_contra' H
-    obtain ⟨⟨s₁, t₁, hcop₁, hSle, hmem₁, hne₁⟩, ⟨s₂, t₂, hcop₂, hSge, hmem₂, hne₂⟩⟩ := H
     -- `s₁/t₁` must be left endpoint
-    obtain ⟨hs₁a₁, ht₁b₁⟩ := condition_of_feasible_help₁ hI hcop₁ hSle hmem₁ hne₁
     have hs₁t₁ := add_le_delta_of_mem_S_le hcop₁ hSle
+    obtain ⟨hs₁a₁, ht₁b₁⟩ := eq_left_of_add_le hI hcop₁ hmem₁ (by linarith) hne₁
     -- `s₂/t₂` must be right endpoint
-    obtain ⟨hs₂a₂, ht₂b₂⟩ := condition_of_feasible_help₂ hI hcop₂ hSge hmem₂ hne₂
     obtain ⟨hs₁, ht₂⟩ := le_delta_of_mem_S_ge hcop₂ hSge
+    obtain ⟨hs₂a₂, ht₂b₂⟩ := eq_right_of_add_le hI hcop₂ hmem₂ (by linarith) hne₂
     -- now obtain contradiction
     refine False.elim <| Nat.lt_irrefl (3 * δ) ?_
     calc
@@ -373,6 +371,8 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
       _     = _                             := by ring
     done
   -- Now deal with the case that `d` is not divisible by 3
+  have hs₁t₁ := add_le_of_mem_S_le hd hcop₁ hSle
+  have hs₂t₂ := le_of_mem_S_ge hd hcop₂ hSge
   sorry
   done
 
