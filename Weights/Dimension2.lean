@@ -111,13 +111,13 @@ lemma add_le_of_mem_S_le {d a b : ℕ} (hd : ¬ 3 ∣ d) (hcop : Nat.Coprime a b
     have H₂ : (2 : ZMod 3) = -1 := rfl
     simpa [H₁, H₂, zero_mul, zero_sub, mul_neg, sub_zero, hd'] using hSle
   refine ⟨hab, ?_⟩
-  obtain ⟨x₁, hx₁⟩ : ∃ x : ℕ, (x : ℤ) = 2 * d - 3 * i₁ - 3 * i₂ :=
+  obtain ⟨x₁, Hx₁⟩ : ∃ x : ℕ, (x : ℤ) = 2 * d - 3 * i₁ - 3 * i₂ :=
     ⟨2 * d - 3 * i₁ - 3 * i₂, by rw [Nat.sub_sub, Int.sub_sub]; norm_cast⟩
-  obtain ⟨x₂, hx₂, hx₂'⟩ : ∃ x : ℕ, (x : ℤ) = 3 * i₂ - d ∧ 0 < x :=
+  obtain ⟨x₂, Hx₂, Hx₂'⟩ : ∃ x : ℕ, (x : ℤ) = 3 * i₂ - d ∧ 0 < x :=
     ⟨3 * i₂ - d, by have := hi₂.le; norm_cast, Nat.sub_pos_of_lt hi₂⟩
   have hx : x₁ + x₂ ≤ d := by linarith
-  rw [(by rw [hx₂] : (a : ℤ) * (3 * i₂ - d) = a * x₂),
-      (by rw [hx₁] : (b : ℤ) * (2 * d - 3 * i₁ - 3 * i₂) = b * x₁)] at hSle
+  rw [(by rw [Hx₂] : (a : ℤ) * (3 * i₂ - d) = a * x₂),
+      (by rw [Hx₁] : (b : ℤ) * (2 * d - 3 * i₁ - 3 * i₂) = b * x₁)] at hSle
   norm_cast at hSle
   obtain ⟨m, hm₁, hm₂⟩ := proportional hSle hcop
   rw [hm₁, hm₂, ← mul_add] at hx
@@ -130,7 +130,7 @@ lemma add_le_of_mem_S_le {d a b : ℕ} (hd : ¬ 3 ∣ d) (hcop : Nat.Coprime a b
   have hm₀ : 0 < m
   · refine (Nat.eq_zero_or_pos m).resolve_left ?_
     rintro rfl
-    linarith only [hx₂', hm₂]
+    linarith only [Hx₂', hm₂]
     done
   rcases ha3 with had | had
   · refine Or.inr ⟨had, ?_⟩
@@ -138,31 +138,24 @@ lemma add_le_of_mem_S_le {d a b : ℕ} (hd : ¬ 3 ∣ d) (hcop : Nat.Coprime a b
     · by_contra' H
       obtain rfl : m = 1 := by linarith
       have hx₁' : (x₁ : ZMod 3) = -d
-      · apply_fun (fun z ↦ (z : ZMod 3)) at hx₁
-        push_cast at hx₁
+      · apply_fun (fun z ↦ (z : ZMod 3)) at Hx₁
+        push_cast at Hx₁
         have H₁ : (3 : ZMod 3) = 0 := rfl
         have H₂ : (2 : ZMod 3) = -1 := rfl
-        simpa only [H₂, neg_mul, one_mul, H₁, zero_mul, sub_zero] using hx₁
+        simpa only [H₂, neg_mul, one_mul, H₁, zero_mul, sub_zero] using Hx₁
       rw [hm₁, one_mul, had, eq_comm] at hx₁'
       contradiction
       done
-    have : 2 * (a + b) ≤ d
-    · calc
-        2 * (a + b) ≤ m * (a + b) := Nat.mul_le_mul_right (a + b) hm
-        _           ≤ d           := hx
+    have : 2 * (a + b) ≤ d := (Nat.mul_le_mul_right (a + b) hm).trans hx
     refine Nat.le_div_two_iff_mul_two_le.mpr ?_
     rw [mul_comm] at this
     exact_mod_cast this
-  · refine Or.inl ⟨had, ?_⟩
-    calc
-      a + b ≤ m * (a + b) := Nat.le_mul_of_pos_left hm₀
-      _     ≤ d           := hx
-    done
+  · exact Or.inl ⟨had, (Nat.le_mul_of_pos_left hm₀).trans hx⟩
 
 /-- If `d = 3*δ` is divisble by `3` and `a/b ∈ S_≥` in lowest terms, then `a ≤ δ` and `b ≤ δ`. -/
 lemma le_delta_of_mem_S_ge {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSge : mem_S_ge (3 * δ) a b) :
     a ≤ δ ∧ b ≤ δ := by
-  obtain ⟨_, i₁, i₂, hi₀, hi₁, hi₂, hSle⟩ := hSge
+  obtain ⟨_, i₁, i₂, hi₀, hi₁, hi₂, hSge⟩ := hSge
   rw [← mul_add, ← mul_assoc, mul_comm 2, mul_assoc] at hi₁
   replace hi₁ := (mul_lt_mul_left (by norm_num)).mp hi₁
   replace hi₂ := (mul_le_mul_left (by norm_num)).mp hi₂
@@ -171,28 +164,85 @@ lemma le_delta_of_mem_S_ge {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSge : mem_S
   obtain ⟨x₂, Hx₂⟩ : ∃ x : ℕ, (x : ℤ) = δ - i₂ := ⟨δ - i₂, by norm_cast⟩
   have hx₁ : x₁ ≤ δ := by linarith
   have hx₂ : x₂ ≤ δ := by linarith
-  push_cast at hSle
+  push_cast at hSge
   rw [(by rw [Hx₂]; ring : (a : ℤ) * (3 * i₂ - 3 * δ) = (-3) * (a * x₂)),
-      (by rw [Hx₁]; ring : (b : ℤ) * (2 * (3 * δ) - 3 * i₁ - 3 * i₂) = (-3) * (b * x₁))] at hSle
-  replace hSle := mul_left_cancel₀ (by norm_num) hSle
-  norm_cast at hSle
-  have ha : a ≤ x₁ := Nat.le_of_dvd Hx₁' <| hcop.dvd_of_dvd_mul_left <| Dvd.intro x₂ hSle
+      (by rw [Hx₁]; ring : (b : ℤ) * (2 * (3 * δ) - 3 * i₁ - 3 * i₂) = (-3) * (b * x₁))] at hSge
+  replace hSge := mul_left_cancel₀ (by norm_num) hSge
+  norm_cast at hSge
+  have ha : a ≤ x₁ := Nat.le_of_dvd Hx₁' <| hcop.dvd_of_dvd_mul_left <| Dvd.intro x₂ hSge
   have hb : b ≤ x₂
   · cases' eq_or_ne x₂ 0 with H H
-    · simp only [H, mul_zero, zero_eq_mul] at hSle 
-      -- `hSle : b = 0 ∨ x₁ = 0`
-      rcases hSle with rfl | rfl
+    · simp only [H, mul_zero, zero_eq_mul] at hSge 
+      -- `hSge : b = 0 ∨ x₁ = 0`
+      rcases hSge with rfl | rfl
       · exact Nat.zero_le _
       · exact False.elim <| Nat.lt_irrefl _ Hx₁'
-    exact Nat.le_of_dvd (Nat.pos_of_ne_zero H) <| hcop.symm.dvd_of_dvd_mul_left <| Dvd.intro x₁ hSle.symm
+    exact Nat.le_of_dvd (Nat.pos_of_ne_zero H) <| hcop.symm.dvd_of_dvd_mul_left <| Dvd.intro x₁ hSge.symm
   exact ⟨ha.trans hx₁, hb.trans hx₂⟩
 
 /-- If `d` is not divisible by `3` and `a/b ∈ S_≥` in lowest terms,
 then either `a ≡ b ≡ d mod 3` and `a, b ≤ d` or `a ≡ b ≡ -d mod 3` and `a, b ≤ d/2`. -/
-lemma le_of_mem_S_ge {d a b : ℕ} (hd : ¬ 3 ∣ d) (hcop : Nat.Coprime a b) (hSle : mem_S_ge d a b) :
+lemma le_of_mem_S_ge {d a b : ℕ} (hd : ¬ 3 ∣ d) (hcop : Nat.Coprime a b) (hSge : mem_S_ge d a b) :
     (a : ZMod 3) = b ∧ ((a : ZMod 3) = d ∧ a ≤ d ∧ b ≤ d ∨ (a : ZMod 3) = -d ∧ a ≤ d / 2 ∧ b ≤ d / 2) := by
-  sorry
-  done 
+  obtain ⟨_, i₁, i₂, hi₀, hi₁, hi₂, hSge⟩ := hSge
+  have hd' : (d : ZMod 3) ≠ 0 := by convert hd; exact ZMod.nat_cast_zmod_eq_zero_iff_dvd d 3
+  have hdd : (-d : ZMod 3) ≠ d
+  · have hch : ringChar (ZMod 3) ≠ 2 := by rw [ZMod.ringChar_zmod_n]; norm_num
+    exact mt (Ring.eq_self_iff_eq_zero_of_char_ne_two hch).mp hd'
+  have hab : (a : ZMod 3) = b
+  · apply_fun (fun z ↦ (z : ZMod 3)) at hSge
+    push_cast at hSge
+    have H₁ : (3 : ZMod 3) = 0 := rfl
+    have H₂ : (2 : ZMod 3) = -1 := rfl
+    simpa [H₁, H₂, zero_mul, zero_sub, mul_neg, sub_zero, hd'] using hSge
+  refine ⟨hab, ?_⟩
+  obtain ⟨x₁, Hx₁, Hx₁'⟩ : ∃ x : ℕ, (x : ℤ) = 3 * i₁ + 3 * i₂ - 2 * d ∧ 0 < x :=
+    ⟨3 * i₁ + 3 * i₂ - 2 * d, by have := hi₁.le; norm_cast, Nat.sub_pos_of_lt hi₁⟩
+  obtain ⟨x₂, Hx₂⟩ : ∃ x : ℕ, (x : ℤ) = d - 3 * i₂ := ⟨d - 3 * i₂, by norm_cast⟩
+  have hx₁ : x₁ ≤ d := by linarith
+  have hx₂ : x₂ ≤ d := by linarith
+  apply_fun (- ·) at hSge
+  rw [(by rw [Hx₂]; ring : -((a : ℤ) * (3 * i₂ - d)) = a * x₂),
+      (by rw [Hx₁]; ring : -((b : ℤ) * (2 * d - 3 * i₁ - 3 * i₂)) = b * x₁)] at hSge
+  norm_cast at hSge
+  obtain ⟨m, hm₁, hm₂⟩ := proportional hSge hcop
+  rw [hm₁] at hx₁
+  rw [hm₂] at hx₂
+  have ha3 : (a : ZMod 3) = d ∨ (a : ZMod 3) = -d
+  · by_contra' H
+    have help : ∀ {a d : ZMod 3}, -d ≠ d → (a ≠ d ∧ a ≠ -d) → a = 0 := by decide
+    have ha₀ := (ZMod.nat_cast_zmod_eq_zero_iff_dvd a 3).mp <| help hdd H
+    have hb₀ := (ZMod.nat_cast_zmod_eq_zero_iff_dvd b 3).mp <| (help hdd H ▸ hab).symm
+    exact Nat.Prime.not_coprime_iff_dvd.mpr ⟨3, Nat.prime_three, ha₀, hb₀⟩ hcop 
+  have hm₀ : 0 < m
+  · refine (Nat.eq_zero_or_pos m).resolve_left ?_
+    rintro rfl
+    linarith only [Hx₁', hm₁]
+    done
+  rcases ha3 with had | had
+  · exact Or.inl ⟨had, (Nat.le_mul_of_pos_left hm₀).trans hx₁, (Nat.le_mul_of_pos_left hm₀).trans hx₂⟩
+  · have hm : 2 ≤ m
+    · by_contra' H
+      obtain rfl : m = 1 := by linarith
+      have hx₁' : (x₁ : ZMod 3) = d
+      · apply_fun (fun z ↦ (z : ZMod 3)) at Hx₁
+        push_cast at Hx₁
+        have H₁ : (3 : ZMod 3) = 0 := rfl
+        have H₂ : (2 : ZMod 3) = -1 := rfl
+        simpa only [H₁, zero_mul, add_zero, H₂, neg_mul, one_mul, sub_neg_eq_add, zero_add] using Hx₁
+      rw [hm₁, one_mul, had] at hx₁'
+      contradiction
+      done
+    refine Or.inr ⟨had, ?_, ?_⟩
+    · have : 2 * a ≤ d := (Nat.mul_le_mul_right a hm).trans hx₁
+      refine Nat.le_div_two_iff_mul_two_le.mpr ?_
+      rw [mul_comm] at this
+      exact_mod_cast this
+    · have : 2 * b ≤ d  := (Nat.mul_le_mul_right b hm).trans hx₂
+      refine Nat.le_div_two_iff_mul_two_le.mpr ?_
+      rw [mul_comm] at this
+      exact_mod_cast this
+
 
 open BasicInterval
 
