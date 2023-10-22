@@ -488,21 +488,6 @@ lemma dom_of_mem_interior_right (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInter
         rw [h₁, h₂, pair'_of_fraction_add, Pi.add_apply, pair'_of_fraction_mul, pair'_of_fraction_mul]
   done
 
-/-- Helper lemma that might go into Mathlib -/
-lemma proportional {a b c d : ℕ} (h : a * d = b * c) (h' : Nat.Coprime a b) :
-    ∃ m, c = m * a ∧ d = m * b := by
-  obtain ⟨c₁, rfl⟩ := (Nat.Coprime.dvd_mul_left h').mp <| Dvd.intro d h
-  obtain ⟨d₁, rfl⟩ := (Nat.Coprime.dvd_mul_left h'.symm).mp <| Dvd.intro _ h.symm
-  cases' eq_or_ne (a * b) 0 with H H
-  · rcases Nat.mul_eq_zero.mp H with rfl | rfl
-    · obtain rfl : b = 1 := h'
-      exact ⟨d₁, by simp⟩
-    · obtain rfl : a = 1 := h'.symm
-      exact ⟨c₁, by simp⟩
-  · rw [← mul_assoc, ← mul_assoc, mul_comm b] at h
-    obtain rfl := mul_left_cancel₀ H h
-    exact ⟨d₁, by simp [mul_comm d₁]⟩
-
 lemma dom_of_proportional (d : ℕ) [NeZero d] {a b a' b' : ℕ} (hab : a ≠ 0 ∨ b ≠ 0) (hc : a'.Coprime b')
     (h : a' * b = b' * a) :
     of_fraction d a' b' ≤d of_fraction d a b := by
@@ -572,14 +557,6 @@ lemma condition_iff_weaker_ge (d : ℕ) [NeZero d] (I : BasicInterval) :
   have H₂ : mem a' b' I := mem_of_proportional hg₁ h₂
   simp_rw [mul_comm _ g, mul_assoc]
   exact congrArg (g * ·) (H a' b' hcop H₁ H₂)
-
-lemma eq_and_eq_of_coprime_coprime_mul_eq_mul {a b c d : ℕ} (hab : Nat.Coprime a b) (hcd : Nat.Coprime c d)
-    (h : a * d = b * c) :
-    a = c ∧ b = d :=
-  ⟨Nat.dvd_antisymm (hab.dvd_of_dvd_mul_left <| Dvd.intro d h)
-                    (hcd.dvd_of_dvd_mul_right <| Dvd.intro_left b h.symm),
-   Nat.dvd_antisymm (hab.symm.dvd_of_dvd_mul_left <| Dvd.intro c h.symm)
-                    (hcd.symm.dvd_of_dvd_mul_right <| Dvd.intro_left a h)⟩
 
 lemma condition_of_feasible_help₁ {δ : ℕ} [NeZero (3 * δ)] {I : BasicInterval} (hI : I.feasible (3 * δ))
     {a b : ℕ} (hcop : Nat.Coprime a b) (hSle : mem_S_le (3 * δ) a b) (hmem : mem a b I)

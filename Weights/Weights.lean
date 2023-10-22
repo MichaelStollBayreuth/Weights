@@ -3,7 +3,7 @@ import Mathlib.Algebra.GCDMonoid.Finset
 import Mathlib.RingTheory.Int.Basic
 import Mathlib.Data.Fin.Tuple.BubbleSortInduction
 import Mathlib.Data.DFinsupp.WellFounded
-import Mathlib.Tactic
+import Weights.Auxiliary
 
 /-!
 # Formalize some parts of the theory of weights
