@@ -36,12 +36,12 @@ in $S$ and $w$ dominates $w'$, then $w = w'$.
 The first main result formalized here is that there is a *unique* minimal complete set
 of weights, which is given by the set `Weight.M n d` of all normalized weights that are minimal
 elements with respect to domination within the set of all normalized weights.
-This is Proposition 3.13 in the paper. See `Weight.M_is_minimal` and `Weight.M_is_unique`.
+This is **Proposition 3.13** in the paper. See `Weight.M_is_minimal` and `Weight.M_is_unique`.
 
 We show in addition that the entries of nonzero elements of `M n d` are coprime
 (`Weight.gcd_eq_one_of_in_M`) and that `M n 1` consists of the single
 element $(0,1,\ldots,1)$ (`Weight.w1_unique`).
 
-The second main result is a proof of Theorem 1.6 in the paper, which says that
+The second main result is a proof of **Theorem 1.6** in the paper, which says that
 in the case $n = 2$, the weights in a minimal complete set of normalized weights
 have entries bounded by the degree $d$. See `Weight.dom_by_max_le_d`.
