@@ -38,6 +38,36 @@ lemma pair'_of_fraction_mul (d a b k : ℕ) (z : Fin 3 → ℤ) :
   ring
   done
 
+/-- Every normalized weight vector for dimension 2 is of the form `of_fraction a b`. -/
+lemma ex_of_fraction {d : ℕ} [NeZero d] {w : Weight 2 d} (h : w.normalized) :
+    ∃ a b, w = of_fraction d a b := by
+  refine ⟨w 2 - w 1, w 1, ?_⟩
+  ext i
+  fin_cases i
+  · simp [of_fraction, h.1]
+  · simp [of_fraction]
+  · change w 2 = w 2 - w 1 + w 1
+    have := h.2 (by norm_num : (1 : Fin 3) ≤ 2)
+    exact Nat.eq_add_of_sub_eq this rfl
+  done
+
+/-- Every vector of the form `of_fraction d a b` is normalized. -/
+lemma normalized_of_of_fraction (d : ℕ) [NeZero d] (a b : ℕ) : (of_fraction d a b).normalized := by
+  refine ⟨?_, ?_⟩
+  · simp [of_fraction]
+  · have help : ∀ i j : Fin 3, i ≤ j → i = 0 ∨ (i = 1 ∧ (j = 1 ∨ j = 2)) ∨ (i = 2 ∧ j = 2) := by decide
+    intro i j hij
+    rcases help i j hij with rfl | ⟨rfl, rfl | rfl⟩ | ⟨rfl, rfl⟩
+    · simp [of_fraction]
+    · exact le_rfl
+    · simp [of_fraction]
+    · exact le_rfl
+  done
+
+/-- The entries of `of_fraction d a b` are bounded by `a+b`. -/
+lemma of_fraction_le (d : ℕ) [NeZero d] (a b : ℕ) (i : Fin 3) : of_fraction d a b i ≤ a + b :=
+  (normalized_of_of_fraction d a b).2 <| Fin.le_val_last i
+
 
 /-- The fraction `a/b`  is an element of `S_≤`. -/
 def mem_S_le (d : ℕ) (a b : ℤ) : Prop :=
@@ -590,5 +620,18 @@ theorem dom_by_max_le_d (d : ℕ) [NeZero d] (a b : ℕ) :
     cases' dom_of_mem d hab hIab (condition_of_feasible hI) with H H
     · exact ⟨I.a₁, I.b₁, hI.1, H⟩
     · exact ⟨I.a₂, I.b₂, hI.2.1, H⟩
+
+/-- The minimal complete set of normalized weight vectors for dimension 2 and degree `d`
+consists of vectors with entries bounded by `d`. -/
+theorem theorem_1_6 (d : ℕ) [NeZero d] : ∀ w ∈ M 2 d, ∀ i, w i ≤ d := by
+  intro w hw
+  obtain ⟨a, b, hab⟩ := ex_of_fraction hw.1
+  obtain ⟨s, t, hle, hdom⟩ := dom_by_max_le_d d a b
+  contrapose! hw
+  obtain ⟨i, hi⟩ := hw
+  refine not_in_M_of_dom_ne ⟨of_fraction d s t, normalized_of_of_fraction d s t, hab ▸ hdom,
+                             fun H ↦ ?_⟩
+  subst H
+  exact lt_irrefl d <| hi.trans_le <| (of_fraction_le d s t i).trans hle
 
 end Weight
