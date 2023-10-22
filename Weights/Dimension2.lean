@@ -555,8 +555,7 @@ lemma condition_iff_weaker_le (d : ℕ) [NeZero d] (I : BasicInterval) :
     exact mem_S_le_of_proportional hg₁ h₁
   have H₂ : mem a' b' I := mem_of_proportional hg₁ h₂
   simp_rw [mul_comm _ g, mul_assoc]
-  congr 1
-  exact H a' b' hcop H₁ H₂
+  exact congrArg (g * ·) (H a' b' hcop H₁ H₂)
 
 lemma condition_iff_weaker_ge (d : ℕ) [NeZero d] (I : BasicInterval) :
     (∀ (a b : ℕ), Nat.Coprime a b → mem_S_ge d a b → mem a b I → a * I.b₁ = b * I.a₁) ↔
@@ -572,8 +571,7 @@ lemma condition_iff_weaker_ge (d : ℕ) [NeZero d] (I : BasicInterval) :
     exact mem_S_ge_of_proportional hg₁ h₁
   have H₂ : mem a' b' I := mem_of_proportional hg₁ h₂
   simp_rw [mul_comm _ g, mul_assoc]
-  congr 1
-  exact H a' b' hcop H₁ H₂
+  exact congrArg (g * ·) (H a' b' hcop H₁ H₂)
 
 lemma eq_and_eq_of_coprime_coprime_mul_eq_mul {a b c d : ℕ} (hab : Nat.Coprime a b) (hcd : Nat.Coprime c d)
     (h : a * d = b * c) :
