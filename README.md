@@ -34,7 +34,7 @@ set of weights is *minimal* if it is minimal with respect to inclusion among com
 in $S$ and $w$ dominates $w'$, then $w = w'$.
 
 The first main result formalized here is that there is a *unique* minimal complete set
-of weights, which is given by the set `M n d` of all normalized weights that are minimal
+of weights, which is given by the set `Weight.M n d` of all normalized weights that are minimal
 elements with respect to domination within the set of all normalized weights.
 This is Proposition 3.13 in the paper. See `Weight.M_is_minimal` and `Weight.M_is_unique`.
 
