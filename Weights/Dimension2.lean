@@ -74,7 +74,7 @@ macro "reduce_mod_3" t:term : tactic => `(tactic|(
   push_cast at $t:term
   have H₁ : (3 : ZMod 3) = 0 := rfl
   have H₂ : (2 : ZMod 3) = -1 := rfl
-  simp [H₁, H₂] at $t:term
+  try simp [H₁, H₂] at $t:term
   try assumption))
 
 /-- The fraction `a/b`  is an element of `S_≤`. -/
@@ -480,10 +480,8 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
   -- Now deal with the case that `d` is not divisible by 3
   obtain ⟨hs₁t₁mod3, hyp₁⟩ := add_le_of_mem_S_le hd hcop₁ hSle
   -- `s₁/t₁` must be left endpoint
-  have h' : s₁+ t₁ ≤ d
-  · rcases hyp₁ with ⟨_, hyp⟩ | ⟨_, hyp⟩
-    · exact hyp
-    · exact hyp.trans <| Nat.div_le_self d 2 
+  have h' : s₁+ t₁ ≤ d :=
+    hyp₁.elim (fun ⟨_, hyp⟩ ↦ hyp) (fun ⟨_, hyp⟩ ↦ hyp.trans <| Nat.div_le_self d 2)
   obtain ⟨hs₁a₁, ht₁b₁⟩ := eq_left_of_add_le hI hcop₁ hmem₁ (by linarith) hne₁
   -- get bounds for `s₂` and `t₂`
   obtain ⟨hs₂t₂mod3, hyp₂⟩ := le_of_mem_S_ge hd hcop₂ hSge
@@ -502,9 +500,8 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
     have : k₂ + t₂ * s₁ = s₂ * t₁
     · rw [hks₂, hkt₂, hs₁a₁, ht₁b₁, add_mul _ _ I.b₁, mul_assoc _ I.a₂, I.rel]
       ring
-      done 
-    apply_fun (fun z ↦ (z : ZMod 3)) at this
-    push_cast at this
+      done
+    reduce_mod_3 this
     simpa only [hs₁t₁mod3, hs₂t₂mod3, add_left_eq_self] using this
     done
   have hk₂ : 3 ≤ k₂
@@ -531,18 +528,13 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
         (hyp₂.resolve_right (fun _ ↦ False.elim <| lt_irrefl d <| H₁.trans_le (by linarith))).1
       have H₃ : (s₁ : ZMod 3) = d
       · have : (k₂ : ZMod 3) = 0 := (ZMod.nat_cast_zmod_eq_zero_iff_dvd k₂ 3).mpr hk₂'
-        apply_fun (fun z ↦ (z : ZMod 3)) at hks₂
-        push_cast at hks₂
+        reduce_mod_3 hks₂
         simpa only [H₂, ← hs₁a₁, one_mul, this, zero_mul, add_zero] using hks₂.symm
       have H₄ : I.a₁ + I.b₁ ≤ d / 2
       · rw [← hs₁a₁, ← ht₁b₁]
-        rcases hyp₁ with ⟨hmod, hle⟩ | ⟨_, hle⟩
-        · have HH : (d : ZMod 3) = 0
-          · rw [H₃] at hmod
-            have hch : ringChar (ZMod 3) ≠ 2 := by rw [ZMod.ringChar_zmod_n]; norm_num
-            exact (Ring.eq_self_iff_eq_zero_of_char_ne_two hch).mp hmod.symm
-          contradiction
-          done
+        rcases hyp₁ with ⟨hmod, _⟩ | ⟨_, hle⟩
+        · have hch : ringChar (ZMod 3) ≠ 2 := by rw [ZMod.ringChar_zmod_n]; norm_num
+          exact False.elim <| hd <| (Ring.eq_self_iff_eq_zero_of_char_ne_two hch).mp (H₃ ▸ hmod).symm
         · exact hle
       have : d < 2 * (I.a₂ + I.b₂)
       · refine lt_two_mul_of_div_two_lt ?_
