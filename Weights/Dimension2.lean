@@ -103,6 +103,7 @@ lemma mem_S_ge_of_proportional {d g : ℕ} {a b : ℤ} (hg : 0 < g) (h : mem_S_g
   replace hg : (0 : ℤ) < g := Nat.cast_pos.mpr hg
   exact ⟨(zero_lt_mul_right hg).mp h₁, i₁, i₂, h', h₂, h₃, Int.eq_of_mul_eq_mul_left hg.ne' h₄⟩
 
+
 lemma not_eq_neg_self {d : ℕ} (hd : ¬ 3 ∣ d) : (-d : ZMod 3) ≠ d := by
   have hd' : (d : ZMod 3) ≠ 0 := by convert hd; exact ZMod.nat_cast_zmod_eq_zero_iff_dvd d 3
   have hch : ringChar (ZMod 3) ≠ 2 := by rw [ZMod.ringChar_zmod_n]; norm_num
@@ -183,10 +184,9 @@ lemma add_le_of_mem_S_le {d a b : ℕ} (hd : ¬ 3 ∣ d) (hcop : Nat.Coprime a b
       have hx₁' : (x₁ : ZMod 3) = -d := by reduce_mod_3 Hx₁
       rw [hm₁, one_mul, had, eq_comm] at hx₁'
       exact not_eq_neg_self hd hx₁'
-    have : 2 * (a + b) ≤ d := (Nat.mul_le_mul_right (a + b) hm).trans hx
-    refine Nat.le_div_two_iff_mul_two_le.mpr ?_
-    rw [mul_comm] at this
-    exact_mod_cast this
+    have : (a + b : ℤ) * 2 ≤ d := by
+      exact_mod_cast mul_comm 2 _ ▸ (Nat.mul_le_mul_right (a + b) hm).trans hx
+    exact Nat.le_div_two_iff_mul_two_le.mpr this
   · exact Or.inl ⟨had, (Nat.le_mul_of_pos_left hm₀).trans hx⟩
 
 /-- If `d = 3*δ` is divisble by `3` and `a/b ∈ S_≥` in lowest terms, then `a ≤ δ` and `b ≤ δ`. -/
@@ -223,9 +223,6 @@ lemma le_of_mem_S_ge {d a b : ℕ} (hd : ¬ 3 ∣ d) (hcop : Nat.Coprime a b) (h
     (a : ZMod 3) = b ∧ ((a : ZMod 3) = d ∧ a ≤ d ∧ b ≤ d ∨ (a : ZMod 3) = -d ∧ a ≤ d / 2 ∧ b ≤ d / 2) := by
   obtain ⟨_, i₁, i₂, hi₀, hi₁, hi₂, hSge⟩ := hSge
   have hd' : (d : ZMod 3) ≠ 0 := by convert hd; exact ZMod.nat_cast_zmod_eq_zero_iff_dvd d 3
-  have hdd : (-d : ZMod 3) ≠ d
-  · have hch : ringChar (ZMod 3) ≠ 2 := by rw [ZMod.ringChar_zmod_n]; norm_num
-    exact mt (Ring.eq_self_iff_eq_zero_of_char_ne_two hch).mp hd'
   have hab := eq_mod_3_of_rel hd' hSge -- `a = b` in `ℤ/3ℤ`
   refine ⟨hab, ?_⟩
   obtain ⟨x₁, Hx₁, Hx₁'⟩ : ∃ x : ℕ, (x : ℤ) = 3 * i₁ + 3 * i₂ - 2 * d ∧ 0 < x :=
@@ -236,15 +233,12 @@ lemma le_of_mem_S_ge {d a b : ℕ} (hd : ¬ 3 ∣ d) (hcop : Nat.Coprime a b) (h
   apply_fun (- ·) at hSge
   rw [(by rw [Hx₂]; ring : -((a : ℤ) * (3 * i₂ - d)) = a * x₂),
       (by rw [Hx₁]; ring : -((b : ℤ) * (2 * d - 3 * i₁ - 3 * i₂)) = b * x₁)] at hSge
-  norm_cast at hSge
+  norm_cast at hSge -- `a * x₂ = b * x₁`
   obtain ⟨m, hm₁, hm₂⟩ := proportional hSge hcop
   rw [hm₁] at hx₁
   rw [hm₂] at hx₂
-  have hm₀ : 0 < m
-  · refine (Nat.eq_zero_or_pos m).resolve_left ?_
-    rintro rfl
-    linarith only [Hx₁', hm₁]
-    done
+  have hm₀ : 0 < m :=
+    (Nat.eq_zero_or_pos m).resolve_left (by rintro rfl; linarith only [Hx₁', hm₁])
   rcases eq_or_eq_neg_in_zmod_3 hd hcop hab with had | had -- `a = d ∨ a = -d` in `ℤ/3ℤ`
   · exact Or.inl ⟨had, (Nat.le_mul_of_pos_left hm₀).trans hx₁, (Nat.le_mul_of_pos_left hm₀).trans hx₂⟩
   · have hm : 2 ≤ m
@@ -252,7 +246,7 @@ lemma le_of_mem_S_ge {d a b : ℕ} (hd : ¬ 3 ∣ d) (hcop : Nat.Coprime a b) (h
       obtain rfl : m = 1 := by linarith
       have hx₁' : (x₁ : ZMod 3) = d := by reduce_mod_3 Hx₁
       rw [hm₁, one_mul, had] at hx₁'
-      exact hdd hx₁'
+      exact not_eq_neg_self hd hx₁'
     have Ha : (a : ℤ) * 2 ≤ d := by exact_mod_cast mul_comm 2 a ▸ (Nat.mul_le_mul_right a hm).trans hx₁
     have Hb : (b : ℤ) * 2 ≤ d := by exact_mod_cast mul_comm 2 b ▸ (Nat.mul_le_mul_right b hm).trans hx₂
     exact Or.inr ⟨had, Nat.le_div_two_iff_mul_two_le.mpr Ha, Nat.le_div_two_iff_mul_two_le.mpr Hb⟩
