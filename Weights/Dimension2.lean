@@ -100,6 +100,16 @@ lemma not_eq_neg_self {d : ℕ} (hd : ¬ 3 ∣ d) : (-d : ZMod 3) ≠ d := by
   have hch : ringChar (ZMod 3) ≠ 2 := by rw [ZMod.ringChar_zmod_n]; norm_num
   exact mt (Ring.eq_self_iff_eq_zero_of_char_ne_two hch).mp hd'
 
+lemma eq_mod_3_of_rel {d a b i₁ i₂ : ℕ} (hd : (d : ZMod 3) ≠ 0)
+    (rel : (a : ℤ) * (3 * i₂ - d) = b * (2 * d - 3 * i₁ - 3 * i₂)) :
+    (a : ZMod 3) = b := by
+  apply_fun (fun z ↦ (z : ZMod 3)) at rel
+  push_cast at rel
+  have H₁ : (3 : ZMod 3) = 0 := rfl
+  have H₂ : (2 : ZMod 3) = -1 := rfl
+  simpa [H₁, H₂, hd] using rel
+  done
+
 lemma eq_or_eq_neg_in_zmod_3 {d a b : ℕ} (hd : ¬ 3 ∣ d) (hcop : Nat.Coprime a b)
     (hab : (a : ZMod 3) = b) :
     (a : ZMod 3) = d ∨ (a : ZMod 3) = -d := by
