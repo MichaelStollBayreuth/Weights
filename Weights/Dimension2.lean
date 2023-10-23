@@ -69,7 +69,7 @@ lemma normalized_of_of_fraction (d a b : ℕ) [NeZero d] : (of_fraction d a b).n
 lemma of_fraction_le (d : ℕ) [NeZero d] (a b : ℕ) (i : Fin 3) : of_fraction d a b i ≤ a + b :=
   (normalized_of_of_fraction d a b).2 <| Fin.le_val_last i
 
-/-- A useful combination of tactics: apply map to `ℤ3ℤ` to rel and simplify. / -/
+/-- A useful combination of tactics: apply map to `ℤ/3ℤ` to `t` and simplify. / -/
 macro "reduce_mod_3" t:term : tactic => `(tactic|(
   apply_fun (fun z ↦ (z : ZMod 3)) at $t:term
   push_cast at $t:term
