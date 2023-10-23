@@ -95,6 +95,20 @@ lemma mem_S_ge_of_proportional {d g : ℕ} {a b : ℤ} (hg : 0 < g) (h : mem_S_g
   replace hg : (0 : ℤ) < g := Nat.cast_pos.mpr hg
   exact ⟨(zero_lt_mul_right hg).mp h₁, i₁, i₂, h', h₂, h₃, Int.eq_of_mul_eq_mul_left hg.ne' h₄⟩
 
+lemma eq_or_eq_neg_in_zmod_3 {d a b : ℕ} (hd : ¬ 3 ∣ d) (hcop : Nat.Coprime a b)
+    (hab : (a : ZMod 3) = b) :
+    (a : ZMod 3) = d ∨ (a : ZMod 3) = -d := by
+  have hd' : (d : ZMod 3) ≠ 0 := by convert hd; exact ZMod.nat_cast_zmod_eq_zero_iff_dvd d 3
+  have hdd : (-d : ZMod 3) ≠ d
+  · have hch : ringChar (ZMod 3) ≠ 2 := by rw [ZMod.ringChar_zmod_n]; norm_num
+    exact mt (Ring.eq_self_iff_eq_zero_of_char_ne_two hch).mp hd'
+  by_contra' H
+  have help : ∀ {a d : ZMod 3}, -d ≠ d → (a ≠ d ∧ a ≠ -d) → a = 0 := by decide
+  have ha₀ := (ZMod.nat_cast_zmod_eq_zero_iff_dvd a 3).mp <| help hdd H
+  have hb₀ := (ZMod.nat_cast_zmod_eq_zero_iff_dvd b 3).mp <| (help hdd H ▸ hab).symm
+  exact Nat.Prime.not_coprime_iff_dvd.mpr ⟨3, Nat.prime_three, ha₀, hb₀⟩ hcop 
+
+
 /-- If `d = 3*δ` is divisble by `3` and `a/b ∈ S_≤` in lowest terms, then `a + b ≤ δ`. -/
 lemma add_le_delta_of_mem_S_le {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSle : mem_S_le (3 * δ) a b) :
     a + b ≤ δ := by
