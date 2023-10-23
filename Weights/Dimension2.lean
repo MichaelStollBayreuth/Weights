@@ -291,7 +291,7 @@ lemma dom_of_mem_interior_left (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterv
       have Hbi : (-bi).toNat = -bi := Int.toNat_of_nonneg (Int.neg_nonneg_of_nonpos hbi.le)
       by_contra H
       have hmem : mem ai.toNat (-bi).toNat I
-      · refine ⟨?_, ?_⟩ <;> { zify; rw [Hai, Hbi]; linarith }
+      · constructor <;> { zify; rw [Hai, Hbi]; linarith }
         done
       specialize h ai.toNat (-bi).toNat
       rw [Hai, Hbi] at h
@@ -351,7 +351,7 @@ lemma dom_of_mem_interior_right (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInter
       have Hai : (-ai).toNat = -ai := Int.toNat_of_nonneg (Int.neg_nonneg_of_nonpos hai.le)
       by_contra H
       have hmem : mem (-ai).toNat bi.toNat I
-      · refine ⟨?_, ?_⟩ <;> { zify; rw [Hai, Hbi]; linarith }
+      · constructor <;> { zify; rw [Hai, Hbi]; linarith }
         done
       specialize h (-ai).toNat bi.toNat
       rw [Hai, Hbi] at h
@@ -373,18 +373,13 @@ lemma dom_of_proportional (d : ℕ) [NeZero d] {a b a' b' : ℕ} (hab : a ≠ 0 
     (h : a' * b = b' * a) :
     of_fraction d a' b' ≤d of_fraction d a b := by
   obtain ⟨m, ha, hb⟩ := proportional h hc
-  have hmz : m ≠ 0
-  · rcases hab with haz | hbz
-    · rw [ha] at haz
-      exact left_ne_zero_of_mul haz
-    · rw [hb] at hbz
-      exact left_ne_zero_of_mul hbz
+  have hmz : m ≠ 0 :=
+    hab.elim (fun haz ↦ left_ne_zero_of_mul <| ha ▸ haz) (fun hbz ↦ left_ne_zero_of_mul <| hb ▸ hbz)
   have hm : (1 : ℤ) ≤ m := Int.toNat_le.mp <| Nat.one_le_iff_ne_zero.mpr hmz
   apply dom_of_pair_le
   intro i hi
   simp_rw [pair'_of_fraction] at hi ⊢
   rw [ha, hb, Nat.cast_mul, Nat.cast_mul, mul_assoc, mul_assoc, ← mul_add]
-  generalize ↑a' * v i 2 + ↑b' * (v i 1 + v i 2) = x at hi ⊢ 
   nlinarith only [hi, hm]
   done
 
@@ -439,8 +434,8 @@ lemma condition_iff_weaker_ge (d : ℕ) [NeZero d] (I : BasicInterval) :
   simp_rw [mul_comm _ g, mul_assoc]
   exact congrArg (g * ·) (H a' b' hcop H₁ H₂)
 
-lemma eq_left_of_add_le {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.feasible d)
-    {a b : ℕ} (hcop : Nat.Coprime a b) (hmem : mem a b I) (hbd : a + b ≤ d) (hne : a * I.b₂ ≠ b * I.a₂) :
+lemma eq_left_of_add_le {d a b : ℕ} [NeZero d] {I : BasicInterval} (hI : I.feasible d)
+    (hcop : Nat.Coprime a b) (hmem : mem a b I) (hbd : a + b ≤ d) (hne : a * I.b₂ ≠ b * I.a₂) :
     a = I.a₁ ∧ b = I.b₁ := by
   refine eq_and_eq_of_coprime_coprime_mul_eq_mul hcop I.coprime₁ ?_
   rcases eq_or_eq_or_mem_interior_of_mem hmem with left | right | interior
@@ -449,8 +444,8 @@ lemma eq_left_of_add_le {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.feasibl
   · linarith [gt_of_mem_interior_feasible hI interior]
   done
 
-lemma eq_right_of_add_le {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.feasible d)
-    {a b : ℕ} (hcop : Nat.Coprime a b) (hmem : mem a b I) (hbd : a + b ≤ d) (hne : a * I.b₁ ≠ b * I.a₁) :
+lemma eq_right_of_add_le {d a b : ℕ} [NeZero d] {I : BasicInterval} (hI : I.feasible d)
+    (hcop : Nat.Coprime a b) (hmem : mem a b I) (hbd : a + b ≤ d) (hne : a * I.b₁ ≠ b * I.a₁) :
     a = I.a₂ ∧ b = I.b₂ := by
   refine eq_and_eq_of_coprime_coprime_mul_eq_mul hcop I.coprime₂ ?_
   rcases eq_or_eq_or_mem_interior_of_mem hmem with left | right | interior
