@@ -21,6 +21,8 @@ inductive BasicInterval
 namespace BasicInterval
 
 /-! Compute the endpoint data and prove the relation. -/
+
+/-- Extract numerators and denominators of the endpoints. -/
 def data : BasicInterval → (ℕ × ℕ) × (ℕ × ℕ)
 | base     => ((0, 1), (1, 0))
 | left I'  => let ((a₁, b₁), (a₂, b₂)) := I'.data
@@ -28,12 +30,16 @@ def data : BasicInterval → (ℕ × ℕ) × (ℕ × ℕ)
 | right I' => let ((a₁, b₁), (a₂, b₂)) := I'.data
               ((a₁ + a₂, b₁ + b₂), (a₂, b₂))
 
+/-- The numerator of the left endpoint -/
 def a₁ (I : BasicInterval) : ℕ := I.data.1.1
 
+/-- The denominator of the left endpoint -/
 def b₁ (I : BasicInterval) : ℕ := I.data.1.2
 
+/-- The numerator of the right endpoint -/
 def a₂ (I : BasicInterval) : ℕ := I.data.2.1
 
+/-- The denominator of the right endpoint -/
 def b₂ (I : BasicInterval) : ℕ := I.data.2.2
 
 attribute [pp_dot] a₁ b₁ a₂ b₂
@@ -189,7 +195,7 @@ lemma exists_of_mem {a b : ℕ} {I : BasicInterval} (h : mem a b I) :
 
 /-- A fraction `a/b` that lies in the interior of a basic interval `[a₁/b₁, a₂/b₂]` satisfies
 `a = k₁ a₁ + k₂ a₂` and `b = k₁ b₁ + k₂ b₂` for some positive natural numbers `k₁` and `k₂`. -/
-lemma exists_of_mem_interior {a b : ℕ} {I : BasicInterval}  (h : mem_interior a b I) :
+lemma exists_of_mem_interior {a b : ℕ} {I : BasicInterval} (h : mem_interior a b I) :
     ∃ k₁ k₂ : ℕ, 0 < k₁ ∧ 0 < k₂ ∧ a = k₁ * I.a₁ + k₂ * I.a₂ ∧ b = k₁ * I.b₁ + k₂ * I.b₂ := by
   obtain ⟨k₁, k₂, h₁, h₂⟩ := exists_of_mem (mem_of_mem_interior h)
   simp only [mem_interior] at h
@@ -213,7 +219,7 @@ def feasible (d : ℕ) (I : BasicInterval) : Prop :=
 
 lemma feasible_base : base.feasible 1 := by simp only [feasible, and_self]
 
-lemma feasible_left_or_right {d : ℕ} [NeZero d] {I : BasicInterval} (h : I.feasible d) :
+lemma feasible_left_or_right {d : ℕ} {I : BasicInterval} (h : I.feasible d) :
     I.feasible d.succ ∨ (I.left.feasible d.succ ∧ I.right.feasible d.succ) := by
   by_cases h' : I.feasible d.succ
   · exact Or.inl h'
