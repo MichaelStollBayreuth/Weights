@@ -41,14 +41,18 @@ set of weights is *minimal* if it is minimal with respect to inclusion among com
 (`Weight.minimal_complete_set`). This is equivalent to saying that when $w$ and $w'$ are
 in $S$ and $w$ dominates $w'$, then $w = w'$.
 
-The main result of this file is that there is a *unique* minimal complete set
-of weights, which is given by the set `M n d` of all normalized weights that are minimal
+The first main result formalized here is that there is a *unique* minimal complete set
+of weights, which is given by the set `Weight.M n d` of all normalized weights that are minimal
 elements with respect to domination within the set of all normalized weights.
-See `Weight.M_is_minimal` and `Weight.M_is_unique`.
+This is **Proposition 3.13** in the paper. See `Weight.M_is_minimal` and `Weight.M_is_unique`.
 
 We show in addition that the entries of nonzero elements of `M n d` are coprime
 (`Weight.gcd_eq_one_of_in_M`) and that `M n 1` consists of the single
 element $(0,1,\ldots,1)$ (`Weight.w1_unique`).
+
+The second main result is a proof of **Theorem 1.6** in the paper, which says that
+in the case $n = 2$, the weights in a minimal complete set of normalized weights
+have entries bounded by the degree $d$. See `Weight.dom_by_max_le_d` and `Weight.theorem_1_6`.
 -/
 
 /-!
@@ -116,7 +120,8 @@ lemma comp_comp (w : Weight n d) (σ τ : Equiv.Perm (Fin n.succ) ) :
 /-- The *sum* of a weight is the sum of its entries. -/
 protected def sum (w : Weight n d) : ℕ := ∑ j, w j
 
-@[simp] lemma sum_perm (w : Weight n d) (σ : Equiv.Perm (Fin n.succ)) : (w.comp σ).sum = w.sum := by
+@[simp] lemma sum_perm (w : Weight n d) (σ : Equiv.Perm (Fin n.succ)) :
+    (w.comp σ).sum = w.sum := by
   simp only [Weight.sum, Function.comp_apply]
   exact Fintype.sum_bijective σ (Equiv.bijective σ) _ _ (fun i ↦ rfl)
   done
@@ -158,8 +163,8 @@ lemma pair_add_left (w w' a : Weight n d) : (w + w').pair a = w.pair a + w'.pair
   exact Finset.mul_sum.symm
   done
 
-/-- If `w` and `a` are both increasing or both decreasing on `{i, j}`, then swapping `a i` and `a j`
-decreases `pair w a`. -/
+/-- If `w` and `a` are both increasing or both decreasing on `{i, j}`,
+then swapping `a i` and `a j` decreases `pair w a`. -/
 lemma pair_swap_le {w a : Weight n d} {i j : Fin n.succ} (hw : w i ≤ w j) (ha : a i ≤ a j) :
     w.pair (a.comp $ Equiv.swap i j) ≤ w.pair a := by
   cases' eq_or_ne i j with h h
@@ -355,7 +360,8 @@ instance fintype_tv : Fintype (testvecs n d) := by
 
 lemma codom_f_well_founded : WellFoundedLT (testvecs n d → ℕ) := inferInstance
 
-instance well_founded : IsWellFounded (Weight n d) (· < ·) := ⟨InvImage.wf f codom_f_well_founded.1⟩
+instance well_founded : IsWellFounded (Weight n d) (· < ·) :=
+  ⟨InvImage.wf f codom_f_well_founded.1⟩
 
 -- Introduce notation `≤d` for domination and `≤c` for the product order
 infix:50 " ≤d " => @LE.le (Weight _ _) _
