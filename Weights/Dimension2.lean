@@ -104,10 +104,9 @@ lemma mem_S_ge_of_proportional {d g : ℕ} {a b : ℤ} (hg : 0 < g) (h : mem_S_g
   exact ⟨(zero_lt_mul_right hg).mp h₁, i₁, i₂, h', h₂, h₃, Int.eq_of_mul_eq_mul_left hg.ne' h₄⟩
 
 
-lemma not_eq_neg_self {d : ℕ} (hd : ¬ 3 ∣ d) : (-d : ZMod 3) ≠ d := by
-  have hd' : (d : ZMod 3) ≠ 0 := by convert hd; exact ZMod.nat_cast_zmod_eq_zero_iff_dvd d 3
+lemma not_eq_neg_self {d : ℕ} (hd : (d : ZMod 3) ≠ 0) : (-d : ZMod 3) ≠ d := by
   have hch : ringChar (ZMod 3) ≠ 2 := by rw [ZMod.ringChar_zmod_n]; norm_num
-  exact mt (Ring.eq_self_iff_eq_zero_of_char_ne_two hch).mp hd'
+  exact mt (Ring.eq_self_iff_eq_zero_of_char_ne_two hch).mp hd
 
 lemma eq_mod_3_of_rel {d a b i₁ i₂ : ℕ} (hd : (d : ZMod 3) ≠ 0)
     (rel : (a : ℤ) * (3 * i₂ - d) = b * (2 * d - 3 * i₁ - 3 * i₂)) :
@@ -115,7 +114,7 @@ lemma eq_mod_3_of_rel {d a b i₁ i₂ : ℕ} (hd : (d : ZMod 3) ≠ 0)
   reduce_mod_3 rel
   exact rel.resolve_right hd
 
-lemma eq_or_eq_neg_in_zmod_3 {d a b : ℕ} (hd : ¬ 3 ∣ d) (hcop : Nat.Coprime a b)
+lemma eq_or_eq_neg_in_zmod_3 {d a b : ℕ} (hd : (d : ZMod 3) ≠ 0) (hcop : Nat.Coprime a b)
     (hab : (a : ZMod 3) = b) :
     (a : ZMod 3) = d ∨ (a : ZMod 3) = -d := by
   have hdd := not_eq_neg_self hd
@@ -158,11 +157,10 @@ lemma add_le_delta_of_mem_S_le {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSle : m
 
 /-- If `d` is not divisible by `3` and `a/b ∈ S_≤` in lowest terms,
 then either `a ≡ b ≡ -d mod 3` and `a + b ≤ d` or `a ≡ b ≡ d mod 3` and `a + b ≤ d/2`. -/
-lemma add_le_of_mem_S_le {d a b : ℕ} (hd : ¬ 3 ∣ d) (hcop : Nat.Coprime a b) (hSle : mem_S_le d a b) :
+lemma add_le_of_mem_S_le {d a b : ℕ} (hd : (d : ZMod 3) ≠ 0) (hcop : Nat.Coprime a b) (hSle : mem_S_le d a b) :
     (a : ZMod 3) = b ∧ ((a : ZMod 3) = -d ∧ a + b ≤ d ∨ (a : ZMod 3) = d ∧ a + b ≤ d / 2) := by
   obtain ⟨_, i₁, i₂, hi₁, hi₂, hSle⟩ := hSle
-  have hd' : (d : ZMod 3) ≠ 0 := by convert hd; exact ZMod.nat_cast_zmod_eq_zero_iff_dvd d 3
-  have hab := eq_mod_3_of_rel hd' hSle -- `a = b` in `ℤ/3ℤ`
+  have hab := eq_mod_3_of_rel hd hSle -- `a = b` in `ℤ/3ℤ`
   refine ⟨hab, ?_⟩
   obtain ⟨x₁, Hx₁⟩ : ∃ x : ℕ, (x : ℤ) = 2 * d - 3 * i₁ - 3 * i₂ :=
     ⟨2 * d - 3 * i₁ - 3 * i₂, by rw [Nat.sub_sub, Int.sub_sub]; norm_cast⟩
@@ -219,11 +217,10 @@ lemma le_delta_of_mem_S_ge {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSge : mem_S
 
 /-- If `d` is not divisible by `3` and `a/b ∈ S_≥` in lowest terms,
 then either `a ≡ b ≡ d mod 3` and `a, b ≤ d` or `a ≡ b ≡ -d mod 3` and `a, b ≤ d/2`. -/
-lemma le_of_mem_S_ge {d a b : ℕ} (hd : ¬ 3 ∣ d) (hcop : Nat.Coprime a b) (hSge : mem_S_ge d a b) :
+lemma le_of_mem_S_ge {d a b : ℕ} (hd : (d : ZMod 3) ≠ 0) (hcop : Nat.Coprime a b) (hSge : mem_S_ge d a b) :
     (a : ZMod 3) = b ∧ ((a : ZMod 3) = d ∧ a ≤ d ∧ b ≤ d ∨ (a : ZMod 3) = -d ∧ a ≤ d / 2 ∧ b ≤ d / 2) := by
   obtain ⟨_, i₁, i₂, hi₀, hi₁, hi₂, hSge⟩ := hSge
-  have hd' : (d : ZMod 3) ≠ 0 := by convert hd; exact ZMod.nat_cast_zmod_eq_zero_iff_dvd d 3
-  have hab := eq_mod_3_of_rel hd' hSge -- `a = b` in `ℤ/3ℤ`
+  have hab := eq_mod_3_of_rel hd hSge -- `a = b` in `ℤ/3ℤ`
   refine ⟨hab, ?_⟩
   obtain ⟨x₁, Hx₁, Hx₁'⟩ : ∃ x : ℕ, (x : ℤ) = 3 * i₁ + 3 * i₂ - 2 * d ∧ 0 < x :=
     ⟨3 * i₁ + 3 * i₂ - 2 * d, by have := hi₁.le; norm_cast, Nat.sub_pos_of_lt hi₁⟩
@@ -462,9 +459,9 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
   rw [← condition_iff_weaker_le, ← condition_iff_weaker_ge]
   by_contra' H
   obtain ⟨⟨s₁, t₁, hcop₁, hSle, hmem₁, hne₁⟩, ⟨s₂, t₂, hcop₂, hSge, hmem₂, hne₂⟩⟩ := H
-  by_cases hd : 3 ∣ d
+  cases' eq_or_ne (d : ZMod 3) 0 with hd hd
   · -- case `d` is divisble by 3
-    obtain ⟨δ, rfl⟩ := hd
+    obtain ⟨δ, rfl⟩ := (ZMod.nat_cast_zmod_eq_zero_iff_dvd d 3).mp hd
     -- `s₁/t₁` must be left endpoint
     have hs₁t₁ := add_le_delta_of_mem_S_le hcop₁ hSle
     obtain ⟨hs₁a₁, ht₁b₁⟩ := eq_left_of_add_le hI hcop₁ hmem₁ (by linarith) hne₁
@@ -544,7 +541,6 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
           · rw [H₃] at hmod
             have hch : ringChar (ZMod 3) ≠ 2 := by rw [ZMod.ringChar_zmod_n]; norm_num
             exact (Ring.eq_self_iff_eq_zero_of_char_ne_two hch).mp hmod.symm
-          rw [← ZMod.nat_cast_zmod_eq_zero_iff_dvd] at hd
           contradiction
           done
         · exact hle
