@@ -530,10 +530,8 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
   have hk₂' : 3 ∣ k₂
   · rw [← ZMod.nat_cast_zmod_eq_zero_iff_dvd]
     have : k₂ + t₂ * s₁ = s₂ * t₁
-    · rw [hks₂, hkt₂, hs₁a₁, ht₁b₁]
-      have := I.rel
-      zify at this ⊢
-      linear_combination -(1 * ↑k₂ * this)
+    · rw [hks₂, hkt₂, hs₁a₁, ht₁b₁, add_mul _ _ I.b₁, mul_assoc _ I.a₂, I.rel]
+      ring
       done 
     apply_fun (fun z ↦ (z : ZMod 3)) at this
     push_cast at this
@@ -554,24 +552,18 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
   have : k₁ = 1 ∨ 2 ≤ k₁ := by rwa [eq_comm, Nat.succ_le, ← le_iff_eq_or_lt]
   have hbd' : 2 * d < s₂ + t₂
   · rcases this with rfl | hk₁
-    · have H₁ : d < s₂ + t₂
-      · calc
-          d < I.a₁ + I.a₂ + I.b₁ + I.b₂              := hI.2.2
-          _ = 1 * (I.a₁ + I.b₁) + 1 * (I.a₂ + I.b₂)  := by ring
-          _ ≤ 1 * (I.a₁ + I.b₁) + k₂ * (I.a₂ + I.b₂) := by gcongr; linarith only [hk₂]
-          _ = s₂ + t₂                                := by rw [hks₂, hkt₂]; ring
-        done
+    · have hs₂bd : 1 * I.a₁ + 3 * I.a₂ ≤ s₂ := by rw [hks₂]; gcongr
+      have ht₂bd : 1 * I.b₁ + 3 * I.b₂ ≤ t₂ := by rw [hkt₂]; gcongr
+      have hI₂ := hI.2.2
+      have H₁ : d < s₂ + t₂ := by linarith
       have Hd : d / 2 + d / 2 ≤ d := by rw [← two_mul]; exact Nat.mul_div_le d 2
-      have H₂ : (s₂ : ZMod 3) = d
-      · rcases hyp₂ with ⟨hmod, _, _⟩ | ⟨_, hle₁, hle₂⟩
-        · exact hmod
-        · exact False.elim <| lt_irrefl d <| H₁.trans_le (by linarith)
+      have H₂ : (s₂ : ZMod 3) = d :=
+        (hyp₂.resolve_right (fun _ ↦ False.elim <| lt_irrefl d <| H₁.trans_le (by linarith))).1
       have H₃ : (s₁ : ZMod 3) = d
       · have : (k₂ : ZMod 3) = 0 := (ZMod.nat_cast_zmod_eq_zero_iff_dvd k₂ 3).mpr hk₂'
         apply_fun (fun z ↦ (z : ZMod 3)) at hks₂
         push_cast at hks₂
-        simp only [H₂, ← hs₁a₁, one_mul, this, zero_mul, add_zero] at hks₂
-        exact hks₂.symm
+        simpa only [H₂, ← hs₁a₁, one_mul, this, zero_mul, add_zero] using hks₂.symm
       have H₄ : I.a₁ + I.b₁ ≤ d / 2
       · rw [← hs₁a₁, ← ht₁b₁]
         rcases hyp₁ with ⟨hmod, hle⟩ | ⟨_, hle⟩
@@ -593,7 +585,7 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
         done
       calc
         2 * d = d + d := by ring
-        _     < (I.a₁ + I.a₂ + I.b₁ + I.b₂) + 2 * (I.a₂ + I.b₂) := by gcongr; exact hI.2.2
+        _     < (I.a₁ + I.a₂ + I.b₁ + I.b₂) + 2 * (I.a₂ + I.b₂) := by gcongr
         _     = 1 * (I.a₁ + I.b₁) + 3 *(I.a₂ + I.b₂)            := by ring
         _     ≤ 1 * (I.a₁ + I.b₁) + k₂ * (I.a₂ + I.b₂)          := by gcongr
         _     = s₂ + t₂                                         := by rw [hks₂, hkt₂]; ring
