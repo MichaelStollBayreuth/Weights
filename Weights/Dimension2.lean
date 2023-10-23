@@ -157,12 +157,7 @@ lemma add_le_of_mem_S_le {d a b : ℕ} (hd : ¬ 3 ∣ d) (hcop : Nat.Coprime a b
     (a : ZMod 3) = b ∧ ((a : ZMod 3) = -d ∧ a + b ≤ d ∨ (a : ZMod 3) = d ∧ a + b ≤ d / 2) := by
   obtain ⟨_, i₁, i₂, hi₁, hi₂, hSle⟩ := hSle
   have hd' : (d : ZMod 3) ≠ 0 := by convert hd; exact ZMod.nat_cast_zmod_eq_zero_iff_dvd d 3
-  have hab : (a : ZMod 3) = b
-  · apply_fun (fun z ↦ (z : ZMod 3)) at hSle
-    push_cast at hSle
-    have H₁ : (3 : ZMod 3) = 0 := rfl
-    have H₂ : (2 : ZMod 3) = -1 := rfl
-    simpa [H₁, H₂, hd'] using hSle
+  have hab := eq_mod_3_of_rel hd' hSle -- `a = b` in `ℤ/3ℤ`
   refine ⟨hab, ?_⟩
   obtain ⟨x₁, Hx₁⟩ : ∃ x : ℕ, (x : ℤ) = 2 * d - 3 * i₁ - 3 * i₂ :=
     ⟨2 * d - 3 * i₁ - 3 * i₂, by rw [Nat.sub_sub, Int.sub_sub]; norm_cast⟩
@@ -236,12 +231,7 @@ lemma le_of_mem_S_ge {d a b : ℕ} (hd : ¬ 3 ∣ d) (hcop : Nat.Coprime a b) (h
   have hdd : (-d : ZMod 3) ≠ d
   · have hch : ringChar (ZMod 3) ≠ 2 := by rw [ZMod.ringChar_zmod_n]; norm_num
     exact mt (Ring.eq_self_iff_eq_zero_of_char_ne_two hch).mp hd'
-  have hab : (a : ZMod 3) = b
-  · apply_fun (fun z ↦ (z : ZMod 3)) at hSge
-    push_cast at hSge
-    have H₁ : (3 : ZMod 3) = 0 := rfl
-    have H₂ : (2 : ZMod 3) = -1 := rfl
-    simpa [H₁, H₂, zero_mul, zero_sub, mul_neg, sub_zero, hd'] using hSge
+  have hab := eq_mod_3_of_rel hd' hSge -- `a = b` in `ℤ/3ℤ`
   refine ⟨hab, ?_⟩
   obtain ⟨x₁, Hx₁, Hx₁'⟩ : ∃ x : ℕ, (x : ℤ) = 3 * i₁ + 3 * i₂ - 2 * d ∧ 0 < x :=
     ⟨3 * i₁ + 3 * i₂ - 2 * d, by have := hi₁.le; norm_cast, Nat.sub_pos_of_lt hi₁⟩
