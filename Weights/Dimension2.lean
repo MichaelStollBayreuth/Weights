@@ -95,13 +95,15 @@ lemma mem_S_ge_of_proportional {d g : ℕ} {a b : ℤ} (hg : 0 < g) (h : mem_S_g
   replace hg : (0 : ℤ) < g := Nat.cast_pos.mpr hg
   exact ⟨(zero_lt_mul_right hg).mp h₁, i₁, i₂, h', h₂, h₃, Int.eq_of_mul_eq_mul_left hg.ne' h₄⟩
 
+lemma not_eq_neg_self {d : ℕ} (hd : ¬ 3 ∣ d) : (-d : ZMod 3) ≠ d := by
+  have hd' : (d : ZMod 3) ≠ 0 := by convert hd; exact ZMod.nat_cast_zmod_eq_zero_iff_dvd d 3
+  have hch : ringChar (ZMod 3) ≠ 2 := by rw [ZMod.ringChar_zmod_n]; norm_num
+  exact mt (Ring.eq_self_iff_eq_zero_of_char_ne_two hch).mp hd'
+
 lemma eq_or_eq_neg_in_zmod_3 {d a b : ℕ} (hd : ¬ 3 ∣ d) (hcop : Nat.Coprime a b)
     (hab : (a : ZMod 3) = b) :
     (a : ZMod 3) = d ∨ (a : ZMod 3) = -d := by
-  have hd' : (d : ZMod 3) ≠ 0 := by convert hd; exact ZMod.nat_cast_zmod_eq_zero_iff_dvd d 3
-  have hdd : (-d : ZMod 3) ≠ d
-  · have hch : ringChar (ZMod 3) ≠ 2 := by rw [ZMod.ringChar_zmod_n]; norm_num
-    exact mt (Ring.eq_self_iff_eq_zero_of_char_ne_two hch).mp hd'
+  have hdd := not_eq_neg_self hd
   by_contra' H
   have help : ∀ {a d : ZMod 3}, -d ≠ d → (a ≠ d ∧ a ≠ -d) → a = 0 := by decide
   have ha₀ := (ZMod.nat_cast_zmod_eq_zero_iff_dvd a 3).mp <| help hdd H
@@ -145,15 +147,12 @@ lemma add_le_of_mem_S_le {d a b : ℕ} (hd : ¬ 3 ∣ d) (hcop : Nat.Coprime a b
     (a : ZMod 3) = b ∧ ((a : ZMod 3) = -d ∧ a + b ≤ d ∨ (a : ZMod 3) = d ∧ a + b ≤ d / 2) := by
   obtain ⟨_, i₁, i₂, hi₁, hi₂, hSle⟩ := hSle
   have hd' : (d : ZMod 3) ≠ 0 := by convert hd; exact ZMod.nat_cast_zmod_eq_zero_iff_dvd d 3
-  have hdd : (-d : ZMod 3) ≠ d
-  · have hch : ringChar (ZMod 3) ≠ 2 := by rw [ZMod.ringChar_zmod_n]; norm_num
-    exact mt (Ring.eq_self_iff_eq_zero_of_char_ne_two hch).mp hd'
   have hab : (a : ZMod 3) = b
   · apply_fun (fun z ↦ (z : ZMod 3)) at hSle
     push_cast at hSle
     have H₁ : (3 : ZMod 3) = 0 := rfl
     have H₂ : (2 : ZMod 3) = -1 := rfl
-    simpa [H₁, H₂, zero_mul, zero_sub, mul_neg, sub_zero, hd'] using hSle
+    simpa [H₁, H₂, hd'] using hSle
   refine ⟨hab, ?_⟩
   obtain ⟨x₁, Hx₁⟩ : ∃ x : ℕ, (x : ℤ) = 2 * d - 3 * i₁ - 3 * i₂ :=
     ⟨2 * d - 3 * i₁ - 3 * i₂, by rw [Nat.sub_sub, Int.sub_sub]; norm_cast⟩
@@ -165,12 +164,7 @@ lemma add_le_of_mem_S_le {d a b : ℕ} (hd : ¬ 3 ∣ d) (hcop : Nat.Coprime a b
   norm_cast at hSle
   obtain ⟨m, hm₁, hm₂⟩ := proportional hSle hcop
   rw [hm₁, hm₂, ← mul_add] at hx
-  have ha3 : (a : ZMod 3) = d ∨ (a : ZMod 3) = -d
-  · by_contra' H
-    have help : ∀ {a d : ZMod 3}, -d ≠ d → (a ≠ d ∧ a ≠ -d) → a = 0 := by decide
-    have ha₀ := (ZMod.nat_cast_zmod_eq_zero_iff_dvd a 3).mp <| help hdd H
-    have hb₀ := (ZMod.nat_cast_zmod_eq_zero_iff_dvd b 3).mp <| (help hdd H ▸ hab).symm
-    exact Nat.Prime.not_coprime_iff_dvd.mpr ⟨3, Nat.prime_three, ha₀, hb₀⟩ hcop 
+  have ha3 : (a : ZMod 3) = d ∨ (a : ZMod 3) = -d := eq_or_eq_neg_in_zmod_3 hd hcop hab
   have hm₀ : 0 < m
   · refine (Nat.eq_zero_or_pos m).resolve_left ?_
     rintro rfl
@@ -188,8 +182,7 @@ lemma add_le_of_mem_S_le {d a b : ℕ} (hd : ¬ 3 ∣ d) (hcop : Nat.Coprime a b
         have H₂ : (2 : ZMod 3) = -1 := rfl
         simpa only [H₂, neg_mul, one_mul, H₁, zero_mul, sub_zero] using Hx₁
       rw [hm₁, one_mul, had, eq_comm] at hx₁'
-      contradiction
-      done
+      exact not_eq_neg_self hd hx₁'
     have : 2 * (a + b) ≤ d := (Nat.mul_le_mul_right (a + b) hm).trans hx
     refine Nat.le_div_two_iff_mul_two_le.mpr ?_
     rw [mul_comm] at this
