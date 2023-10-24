@@ -37,9 +37,6 @@ lemma eq_one_of_coprime_mul_mul {a b c : ℕ} (h : Nat.Coprime (a * b) (a * c)) 
 
 open Nat in
 lemma lt_two_mul_of_div_two_lt {a d : ℕ} (h : d / 2 < a) : d < 2 * a := by
-  rw [lt_iff_add_one_le, ← div_add_mod d 2, add_right_comm]
-  rw [lt_iff_add_one_le, ← mul_le_mul_left (a := 2) zero_lt_two] at h
-  rw [mul_add, two_mul 1, ← add_assoc] at h
-  exact (add_le_add_left (lt_succ.mp <| mod_lt d (zero_lt_two)) _).trans h
+  rwa [Nat.div_lt_iff_lt_mul zero_lt_two, mul_comm] at h
 
 end Weight
