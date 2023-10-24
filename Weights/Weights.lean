@@ -64,6 +64,7 @@ have entries bounded by the degree $d$. See `Weight.dom_by_max_le_d` and `Weight
 -/
 
 /-- A *weight* of *dimension* `n` and *degree* `d` is a map from `{0..n}` to `ℕ`. -/
+@[nolint unusedArguments] -- stop linter complaining about `_d`
 def Weight (n _d : ℕ) : Type := Fin n.succ → ℕ
 -- deriving One, AddCommMonoid -- does not work
 
@@ -180,7 +181,7 @@ lemma pair_swap_le {w a : Weight n d} {i j : Fin n.succ} (hw : w i ≤ w j) (ha 
     simp only [pair]
     rw [← Finset.add_sum_erase _ _ (Finset.mem_univ i),
         ← Finset.add_sum_erase _ _ (Finset.mem_univ j),
-        ← Finset.add_sum_erase _ _ (Finset.mem_erase.mpr ⟨h.symm, Finset.mem_univ _⟩), 
+        ← Finset.add_sum_erase _ _ (Finset.mem_erase.mpr ⟨h.symm, Finset.mem_univ _⟩),
         ← Finset.add_sum_erase _ _ (Finset.mem_erase.mpr ⟨h, Finset.mem_univ _⟩),
         Finset.erase_right_comm, Finset.sum_congr rfl ht, ← add_assoc, ← add_assoc]
     simp only [comp_apply, Equiv.swap_apply_left, Equiv.swap_apply_right, add_le_add_iff_right]
@@ -212,7 +213,7 @@ lemma pair_swap_eq (w a : Weight n d) (i j : Fin n.succ) :
 
 /-- We define the set of *test vectors* of dimension `n` and degree `d` to be the
 set of weights whose sum is `d`. -/
-def testvecs (n d : ℕ) [NeZero d] : Set (Weight n d) := {w | w.sum = d}
+def testvecs (n d : ℕ) : Set (Weight n d) := {w | w.sum = d}
 
 lemma pair_shift (a : testvecs n d) (k : ℕ) : (k • (1 : Weight n d)).pair a = k * d := by
   simp only [pair, smul_apply, one_apply, mul_one]
@@ -235,9 +236,8 @@ lemma testvecs_perm {a : Weight n d} (ha : a ∈ testvecs n d) (σ : Equiv.Perm 
     a.comp σ ∈ testvecs n d := by simpa only [testvecs, sum_perm, Set.mem_setOf_eq]
 
 /-- The test vector `(d-1,0,...,1,...,0)` (`1` in position `k`),
-for `k = 0`, this is `(d,0,...,0)`. -/
--- first define it as a weight...
-def tw' (n d : ℕ) [NeZero d] (k : Fin n.succ) : Weight n d :=
+for `k = 0`, this is `(d,0,...,0)`. First we define it as a weight. -/
+def tw' (n d : ℕ) (k : Fin n.succ) : Weight n d :=
   (d - 1) • (Function.update (0 : Weight n d) 0 1) + Function.update (0 : Weight n d) k 1
 
 -- then prove it has sum `d`.
@@ -248,14 +248,14 @@ lemma tw'_sum (n d : ℕ) [NeZero d] (k : Fin n.succ) : (tw' n d k).sum = d := b
   exact Nat.sub_add_cancel (Nat.one_le_of_lt (NeZero.pos d))
   done
 
--- Now we can define it as an element of `testvecs n d`.
+/-- Now we define the test vector `(d-1,0,...,1,...,0)` as an element of `testvecs n d`. -/
 def tw (n d : ℕ) [NeZero d] (k : Fin n.succ) : testvecs n d := ⟨tw' n d k, tw'_sum n d k⟩
 
 /-- The test vectors given by `tw n d` are pairwise distinct. -/
 lemma tw_inj (n d : ℕ) [NeZero d] : Function.Injective (tw n d) := by
   intro j k h
   simp only [tw, tw', ge_iff_le, nsmul_eq_mul, Pi.coe_nat, Nat.cast_tsub, Nat.cast_id,
-    Nat.cast_one, Subtype.mk.injEq] at h 
+    Nat.cast_one, Subtype.mk.injEq] at h
   replace h := congr_fun h k
   simp only [ge_iff_le, Pi.add_apply, Pi.mul_apply, ne_eq, Function.update_apply, zero_apply,
     mul_ite, mul_one, mul_zero, Function.update_same, add_right_inj, ite_eq_left_iff, if_true] at h
@@ -363,8 +363,10 @@ lemma codom_f_well_founded : WellFoundedLT (testvecs n d → ℕ) := inferInstan
 instance well_founded : IsWellFounded (Weight n d) (· < ·) :=
   ⟨InvImage.wf f codom_f_well_founded.1⟩
 
--- Introduce notation `≤d` for domination and `≤c` for the product order
+/-- Introduce notation `≤d` for domination -/
 infix:50 " ≤d " => @LE.le (Weight _ _) _
+
+/-- Introduce notation `≤c` for the product order-/
 infix:50 " ≤c " => @LE.le (Fin _ → ℕ) _
 
 @[simp] lemma dom_iff (w w' : Weight n d) : w ≤d w' ↔ f w ≤ f w' := Iff.rfl
@@ -383,7 +385,7 @@ lemma pair'_v (w : Weight n d) (a : testvecs n d) :
 /-- `f w a` vanishes when `w` and `v a` pair to a negative value. -/
 lemma f_apply_eq_zero_of_neg_pair'_v {w : Weight n d} {a : testvecs n d} (h : pair' w (v a) < 0) :
     f w a = 0 := by
-  simp only [pair'_v, sub_neg] at h 
+  simp only [pair'_v, sub_neg] at h
   simp only [f_apply, E, tsub_eq_zero_iff_le]
   zify
   change ((Weight.sum w) * ↑d / (↑n + 1) : ℤ) < ↑(pair w ↑a)
