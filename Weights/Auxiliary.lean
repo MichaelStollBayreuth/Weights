@@ -35,7 +35,4 @@ lemma eq_and_eq_of_coprime_coprime_mul_eq_mul {a b c d : ℕ} (hab : Nat.Coprime
 lemma eq_one_of_coprime_mul_mul {a b c : ℕ} (h : Nat.Coprime (a * b) (a * c)) : a = 1 :=
   (Nat.coprime_self a).mp <| Nat.Coprime.coprime_mul_right <| Nat.Coprime.coprime_mul_right_right h
 
-lemma lt_two_mul_of_div_two_lt {a d : ℕ} (h : d / 2 < a) : d < 2 * a := by
-  rwa [Nat.div_lt_iff_lt_mul zero_lt_two, mul_comm] at h
-
 end Weight
