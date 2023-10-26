@@ -185,7 +185,7 @@ lemma add_le_of_mem_S_le {d a b : ℕ} (hd : (d : ZMod 3) ≠ 0) (hcop : Nat.Cop
   rw [(by rw [Hx₂] : (a : ℤ) * (3 * i₂ - d) = a * x₂),
       (by rw [Hx₁] : (b : ℤ) * (2 * d - 3 * i₁ - 3 * i₂) = b * x₁)] at hSle
   norm_cast at hSle -- `a * x₂ = b * x₁`
-  obtain ⟨m, hm₁, hm₂⟩ := proportional_of_mul_eq_mul_of_coprime hSle hcop
+  obtain ⟨m, hm₁, hm₂⟩ :=  Nat.proportional_of_mul_eq_mul_of_coprime hSle hcop
   rw [hm₁, hm₂, ← mul_add] at hx
   have hm₀ : 0 < m :=
     (Nat.eq_zero_or_pos m).resolve_left (by rintro rfl; linarith only [Hx₂', hm₂])
@@ -249,7 +249,7 @@ lemma le_of_mem_S_ge {d a b : ℕ} (hd : (d : ZMod 3) ≠ 0) (hcop : Nat.Coprime
   rw [(by rw [Hx₂]; ring : -((a : ℤ) * (3 * i₂ - d)) = a * x₂),
       (by rw [Hx₁]; ring : -((b : ℤ) * (2 * d - 3 * i₁ - 3 * i₂)) = b * x₁)] at hSge
   norm_cast at hSge -- `a * x₂ = b * x₁`
-  obtain ⟨m, hm₁, hm₂⟩ := proportional_of_mul_eq_mul_of_coprime hSge hcop
+  obtain ⟨m, hm₁, hm₂⟩ := Nat.proportional_of_mul_eq_mul_of_coprime hSge hcop
   rw [hm₁] at hx₁
   rw [hm₂] at hx₂
   have hm₀ : 0 < m :=
@@ -395,7 +395,7 @@ lemma dom_of_mem_interior_right (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInter
 lemma dom_of_proportional (d : ℕ) [NeZero d] {a b a' b' : ℕ} (hab : a ≠ 0 ∨ b ≠ 0)
     (hc : a'.Coprime b') (h : a' * b = b' * a) :
     of_fraction d a' b' ≤d of_fraction d a b := by
-  obtain ⟨m, ha, hb⟩ := proportional_of_mul_eq_mul_of_coprime h hc
+  obtain ⟨m, ha, hb⟩ := Nat.proportional_of_mul_eq_mul_of_coprime h hc
   have hmz : m ≠ 0 :=
     hab.elim (fun haz ↦ left_ne_zero_of_mul <| ha ▸ haz)
              (fun hbz ↦ left_ne_zero_of_mul <| hb ▸ hbz)
@@ -467,7 +467,7 @@ lemma condition_iff_weaker_ge (d : ℕ) [NeZero d] (I : BasicInterval) :
 lemma eq_left_of_add_le {d a b : ℕ} [NeZero d] {I : BasicInterval} (hI : I.feasible d)
     (hcop : Nat.Coprime a b) (hmem : mem a b I) (hbd : a + b ≤ d) (hne : a * I.b₂ ≠ b * I.a₂) :
     a = I.a₁ ∧ b = I.b₁ := by
-  refine eq_and_eq_of_coprime_coprime_mul_eq_mul hcop I.coprime₁ ?_
+  refine Nat.eq_and_eq_of_coprime_coprime_mul_eq_mul hcop I.coprime₁ ?_
   rcases eq_or_eq_or_mem_interior_of_mem hmem with left | right | interior
   · exact left
   · contradiction
@@ -477,7 +477,7 @@ lemma eq_left_of_add_le {d a b : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
 lemma eq_right_of_add_le {d a b : ℕ} [NeZero d] {I : BasicInterval} (hI : I.feasible d)
     (hcop : Nat.Coprime a b) (hmem : mem a b I) (hbd : a + b ≤ d) (hne : a * I.b₁ ≠ b * I.a₁) :
     a = I.a₂ ∧ b = I.b₂ := by
-  refine eq_and_eq_of_coprime_coprime_mul_eq_mul hcop I.coprime₂ ?_
+  refine Nat.eq_and_eq_of_coprime_coprime_mul_eq_mul hcop I.coprime₂ ?_
   rcases eq_or_eq_or_mem_interior_of_mem hmem with left | right | interior
   · contradiction
   · exact right
@@ -547,7 +547,7 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
     rintro rfl
     simp only [zero_mul, zero_add] at hks₂ hkt₂
     rw [hks₂, hkt₂] at hcop₂
-    linarith only [eq_one_of_coprime_mul_mul hcop₂, hk₂]
+    linarith only [Nat.eq_one_of_coprime_mul_mul hcop₂, hk₂]
     done
   have : k₁ = 1 ∨ 2 ≤ k₁ := by rwa [eq_comm, Nat.succ_le, ← le_iff_eq_or_lt]
   have hI₂ := hI.2.2
