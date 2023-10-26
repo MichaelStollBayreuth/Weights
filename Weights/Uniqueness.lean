@@ -25,12 +25,10 @@ def trunc (w : Weight n d) : Weight n d := fun j ↦ min (w j) w.E
 lemma trunc_mono_lec {w w' : Weight n d} (h : w ≤c w') : w.trunc ≤c w'.trunc := by
   simp only [lec_iff, trunc_apply]
   exact fun j ↦ min_le_min (h j) (E_lec_mono h)
-  done
 
 lemma trunc_lec (w : Weight n d) : w.trunc ≤c w := by
   simp_rw [trunc, lec_iff]
   exact (fun j ↦ min_le_left _ _)
-  done
 
 lemma trunc_le_E (w : Weight n d) (j : Fin n.succ) : w.trunc j ≤ w.E := by
   simp only [trunc, min_le_iff, le_refl, or_true]
@@ -39,13 +37,11 @@ lemma trunc_le_E (w : Weight n d) (j : Fin n.succ) : w.trunc j ≤ w.E := by
 lemma trunc_zero {w : Weight n d} (h : w 0 = 0) : w.trunc 0 = 0 := by
   simp only [trunc_apply, Nat.min_eq_zero_iff] at h ⊢
   exact Or.inl h
-  done
 
 lemma trunc_Monotone {w : Weight n d} (h : Monotone w) : Monotone w.trunc := by
   intro i j hij
   simp only [trunc_apply, min_le_iff, le_min_iff, le_refl, and_true, or_true]
   exact Or.inl (h hij)
-  done
 
 lemma trunc_normalized {w : Weight n d} (h : w.normalized) : w.trunc.normalized :=
   ⟨trunc_zero h.1, trunc_Monotone h.2⟩
@@ -53,16 +49,13 @@ lemma trunc_normalized {w : Weight n d} (h : w.normalized) : w.trunc.normalized 
 lemma trunc_pair_lb (w a : Weight n d) (h : ∃ j, w.E < w j ∧ 0 < a j) : w.E ≤ w.trunc.pair a := by
   obtain ⟨j, hj, ha⟩ := h
   have hm := mul_le_pair w.trunc a j
-  simp only [trunc_apply] at hm
-  rw [min_eq_right_of_lt hj] at hm
+  rw [trunc_apply, min_eq_right_of_lt hj] at hm
   exact (Nat.le_mul_of_pos_left ha).trans hm
-  done
 
 lemma trunc_pair_le_pair (w a : Weight n d) : w.trunc.pair a ≤ w.pair a :=
   pair_le_pair_of_lec w.trunc w a (trunc_lec w)
 
-lemma E_trunc_le_E (w : Weight n d) : w.trunc.E ≤ w.E :=
-  E_lec_mono (trunc_lec w)
+lemma E_trunc_le_E (w : Weight n d) : w.trunc.E ≤ w.E := E_lec_mono (trunc_lec w)
 
 /-- `w` and `trunc w` give the same pairing with `a` if for each `j`, either `w j ≤ E w`
 or `a j ≤ 0`. -/
@@ -71,14 +64,10 @@ lemma trunc_pair_eq_pair (w a : Weight n d) (h : ∀ j, w.E < w j → a j ≤ 0)
   simp only [pair, trunc_apply]
   congr
   ext j
-  specialize h j
   simp only [mul_eq_mul_left_iff, min_eq_left_iff]
-  by_cases h' : w j ≤ w.E
+  cases' le_or_lt (w j) w.E with h' h'
   · exact Or.inl h'
-    done
-  · simp only [not_le] at h'
-    exact Or.inr <| Nat.eq_zero_of_le_zero (h h')
-    done
+  · exact Or.inr <| Nat.eq_zero_of_le_zero (h j h')
 
 /-- `trunc w` dominates `w`. -/
 lemma trunc_dom (w : Weight n d) : w.trunc ≤d w := by
@@ -89,10 +78,8 @@ lemma trunc_dom (w : Weight n d) : w.trunc ≤d w := by
   by_cases h : ∃ j, w.E < w j ∧ 0 < a.1 j
   · rw [Nat.sub_eq_zero_of_le (trunc_pair_lb w a h)]
     exact Nat.zero_le _
-    done
   · push_neg at h
     rw [trunc_pair_eq_pair w a h]
-    done
 
 /-- `w` dominates `trunc w` (and so they dominate each other) when `E (trunc w) = E w`. -/
 lemma trunc_dom' {w : Weight n d} (hE : w.trunc.E = w.E) : w ≤d w.trunc := by
@@ -100,9 +87,8 @@ lemma trunc_dom' {w : Weight n d} (hE : w.trunc.E = w.E) : w ≤d w.trunc := by
   intro a
   simp_rw [f, ← hE]
   exact Nat.sub_le_sub_left _ (trunc_pair_le_pair w a)
-  done
 
-/-- The converse: if `w` dominates `trunc w`, then `E (trunc w) = E w`. -/
+/-- The converse: if `w` dominates `trunc w` and `w 0 = 0`, then `E (trunc w) = E w`. -/
 lemma E_trunc_eq_E_of_dom {w : Weight n d} (h : w ≤d w.trunc) (h' : w 0 = 0) : w.trunc.E = w.E :=
   E_dom_eq (trunc_zero h') h' (trunc_dom _) h
 
@@ -118,9 +104,7 @@ lemma balanced_iff_eq_trunc (w : Weight n d) : w.balanced ↔ w.trunc = w := by
   constructor <;> intro h
   · ext j
     exact min_eq_left_iff.mpr (h j)
-    done
   · exact fun j ↦ min_eq_left_iff.mp (congr_fun h j)
-    done
 
 lemma balanced_iff_lec_E (w : Weight n d) : w.balanced ↔ w ≤c (w.E : Fin n.succ → ℕ) := by rfl
 
@@ -128,7 +112,6 @@ lemma balanced_iff_lec_E (w : Weight n d) : w.balanced ↔ w ≤c (w.E : Fin n.s
 lemma trunc_balanced {w : Weight n d} (hE : w.trunc.E = w.E) : w.trunc.balanced := by
   rw [balanced_iff_lec_E, hE, lec_iff]
   exact trunc_le_E w
-  done
 
 /-!
 ### Minimal weights are essentially unique
@@ -144,11 +127,10 @@ for each dimension `n` and degree `d`; see below.
 lemma dom_of_gec {w w' : Weight n d} (hE : E w = E w') (h : w' ≤c w) : w ≤d w' := by
   simp only [dom_iff, f_le_iff, f_apply, SetCoe.forall, Subtype.coe_mk, hE]
   exact fun a _ ↦ Nat.sub_le_sub_left _ (pair_le_pair_of_lec _ _ _ h)
-  done
 
 /-- If `w` has first entry `0`, `w'` is balanced, and `E w = E w'`, then `w ≤d w' ↔ w' ≤c w`. -/
 lemma dom_iff_gec_of_balanced {w w' : Weight n d} (hw₁ : w 0 = 0) (hw'₂ : w'.balanced)
-  (hE : E w = E w') :
+    (hE : E w = E w') :
     w ≤d w' ↔ w' ≤c w := by
   refine ⟨fun h ↦ (lec_iff _ _).mpr (fun j ↦ ?_), dom_of_gec hE⟩
   have hw₃ := eval_f_tw w j
@@ -156,13 +138,12 @@ lemma dom_iff_gec_of_balanced {w w' : Weight n d} (hw₁ : w 0 = 0) (hw'₂ : w'
   have h' := h (tw n d j)
   rw [hw₃, eval_f_tw w' j, hE, Nat.sub_sub, add_comm, ← Nat.sub_sub] at h'
   exact (tsub_le_tsub_iff_left (hw'₂ j)).mp (h'.trans $ Nat.sub_le _ _)
-  done
 
 /-- A helper lemma: if `w` is not balanced, but such that `E w = E (trunc w)`, and has at least
 one zero entry, then increasing this entry to `1` gives a weight `w'` that is balanced, has
 the same exponent as `w` and is strictly larger than `w` in the product order. -/
 lemma exists_balanced_ltc (w : Weight n d) (hb : ¬ w.balanced)
-  (hE : w.trunc.E = w.E) {k : Fin n.succ} (hk : w k = 0) :
+    (hE : w.trunc.E = w.E) {k : Fin n.succ} (hk : w k = 0) :
     let w' : Weight n d := Function.update w.trunc k 1
     w'.E = w.trunc.E ∧ w'.balanced ∧ w.trunc ≤c w' ∧ w.trunc ≠ w' := by
   intro w'
@@ -183,28 +164,22 @@ lemma exists_balanced_ltc (w : Weight n d) (hb : ¬ w.balanced)
         Finset.sum_lt_sum (fun j _ ↦ (lec_iff _ _).mp (trunc_lec w) j)
                           ⟨j, Finset.mem_univ j, lt_of_le_of_lt (trunc_le_E w j) hj⟩
       exact Nat.div_le_div_right (Nat.mul_le_mul_right _ $ Nat.succ_le_iff.mpr hsum)
-      done
     · exact Nat.div_le_div_right (Nat.mul_le_mul_right _ (Nat.le_succ _))
-      done
   refine ⟨hE', fun j ↦ ?_, (lec_iff _ _).mpr (fun j ↦ ?_), fun hf ↦ ?_⟩
   · -- show `balanced w'`
     simp only [ne_eq, Function.update_apply, trunc_apply, ge_iff_le, hE']
-    split_ifs with hj
+    split_ifs
     · exact one_le_E _
-      done
     · exact trunc_balanced hE _
-      done
   · -- show `w.trunc ≤c w'`
     simp only [Function.update_apply]
     by_cases hjk : j = k <;>
       simp only [hjk, (Nat.eq_zero_of_le_zero (le_of_le_of_eq (trunc_lec w k) hk)),
         zero_le', if_false]
     · exact Nat.le_refl (trunc w j)
-      done
   · -- show `w.trunc ≠ w'`.
     rw [hf, self_eq_add_right] at hsum'
     exact Nat.one_ne_zero hsum'
-    done
 
 /-- If `w` is normalized, then there is an index `k` such that `w k = 0` and replacing
 this entry by `1` still gives a monotone weight. -/
@@ -217,24 +192,15 @@ lemma index_exists {w : Weight n d} (hw : w.normalized) :
   · have h₀ : P 0 := by rw [hP 0 (Nat.zero_lt_succ n)]; exact hw.1
     rw [← hP]
     exact Nat.findGreatest_spec (Nat.zero_le n) h₀
-    done
   refine ⟨m, hm, fun i j hij ↦ ?_⟩
   simp only [Function.update_apply]
   by_cases hi : i = m <;> by_cases hj : j = m <;> simp [hi, hj]
-  · have hij' : m < j
-    · rw [← hi]
-      refine lt_of_le_of_ne hij ?_
-      rw [hi]
-      exact Ne.symm hj
-      done
+  · have hij' : m < j := hi.symm ▸ lt_of_le_of_ne hij (hi.symm ▸ Ne.symm hj)
     have := Nat.findGreatest_is_greatest hij' (Nat.le_of_lt_succ j.2)
-    simp only [Fin.is_lt, Fin.eta, dite_eq_ite, ite_true, ← Ne.def] at this 
+    simp only [Fin.is_lt, Fin.eta, dite_eq_ite, ite_true, ← Ne.def] at this
     exact Nat.one_le_iff_ne_zero.mpr this
-    done
   · exact (le_of_le_of_eq (hw.2 (le_of_le_of_eq hij hj)) hm).trans zero_le_one
-    done
   · exact hw.2 hij
-    done
 
 /-- If `w` has first entry `0` and is minimal w.r.t. `≤d`, then `w` is balanced. -/
 lemma balanced_of_min {w : Weight n d} (hw : w 0 = 0) (hmin : ∀ u, u ≤d w → w ≤d u) :
@@ -245,40 +211,36 @@ lemma balanced_of_min {w : Weight n d} (hw : w 0 = 0) (hmin : ∀ u, u ≤d w �
   -- We use that `≤d` is equivalent to `≥c` under suitable assumptions.
   exact hne (lec_antisymm hc <| (dom_iff_gec_of_balanced (trunc_zero hw) hb' hE'.symm).mp <|
               (trunc_dom w).trans <| hmin _  <| (dom_of_gec hE' hc).trans $ trunc_dom w)
-  done
 
 /-- If `w` is normalized and minimal w.r.t. `≤d` on monotone weights, then `w` is balanced. -/
 lemma balanced_of_min' {w : Weight n d} (hw : w.normalized)
-  (hmin : ∀ u : Weight n d, (Monotone u) → u ≤d w → w ≤d u) :
+    (hmin : ∀ u : Weight n d, (Monotone u) → u ≤d w → w ≤d u) :
     w.balanced := by
-  obtain ⟨k, hk₁, hk₂⟩ := index_exists hw
   by_contra hb
-  obtain ⟨hE', hb', hc, hne⟩ := 
+  obtain ⟨k, hk₁, hk₂⟩ := index_exists hw
+  obtain ⟨hE', hb', hc, hne⟩ :=
     exists_balanced_ltc w hb
-      (E_trunc_eq_E_of_dom (hmin _ (trunc_normalized hw).2 (trunc_dom w)) hw.1) hk₁
+      (E_trunc_eq_E_of_dom (hmin _ (trunc_normalized hw).2 w.trunc_dom) hw.1) hk₁
   -- We use that `≤d` is equivalent to `≥c` under suitable assumptions.
-  refine hne (lec_antisymm hc <| (dom_iff_gec_of_balanced (trunc_normalized hw).1 hb' hE'.symm).mp <|
-              (trunc_dom w).trans <| hmin _ ?_ <| (dom_of_gec hE' hc).trans (trunc_dom w))
+  refine hne <| lec_antisymm hc <|
+    (dom_iff_gec_of_balanced (trunc_normalized hw).1 hb' hE'.symm).mp <|
+    w.trunc_dom.trans <| hmin _ ?_ <| (dom_of_gec hE' hc).trans w.trunc_dom
   intro i j hij
   simp only [Function.update_apply, trunc_apply]
   cases' eq_or_ne i k with hi hi <;> cases' eq_or_ne j k with hj hj <;> simp [hi, hj]
-  · refine ⟨?_, one_le_E w⟩
-    have : w j = Function.update w k 1 j := by simp only [Function.update_apply, hj, if_false]
+  · have : w j = Function.update w k 1 j := by simp only [Function.update_apply, hj, if_false]
+    refine ⟨?_, one_le_E w⟩
     rw [(Function.update_same k 1 w).symm, this]
     exact hk₂ (le_of_eq_of_le hi.symm hij)
-    done
   · exact Or.inl ((le_of_le_of_eq (hw.2 (le_of_le_of_eq hij hj)) hk₁).trans zero_le_one)
-    done
   · cases' le_or_lt w.E (w j) with h h
     · exact Or.inr h
-      done
     · exact Or.inl (hw.2 hij)
-      done
 
 /-- If two weights with first entry `0` dominate each other and are minimal w.r.t. `≤d`,
 then they are equal. -/
-lemma eq_of_dom_and_min {w w' : Weight n d} (hw : w 0 = 0) (hw' : w' 0 = 0)
-  (h : w' ≤d w) (hmin : ∀ u, u ≤d w → w ≤d u) :
+lemma eq_of_dom_and_min {w w' : Weight n d} (hw : w 0 = 0) (hw' : w' 0 = 0) (h : w' ≤d w)
+    (hmin : ∀ u, u ≤d w → w ≤d u) :
     w = w' := by
   have h₁ := hmin _ h                   -- `w ≤d w'`
   have hmin' := fun u (hu : u ≤d w') ↦ h.trans (hmin u (hu.trans h)) -- `w'` is minimal
@@ -287,12 +249,11 @@ lemma eq_of_dom_and_min {w w' : Weight n d} (hw : w 0 = 0) (hw' : w' 0 = 0)
   have hE := E_dom_eq hw hw' h₁ h       -- `E w = E w'`
   exact lec_antisymm
     ((dom_iff_gec_of_balanced hw' hb hE.symm).mp h) ((dom_iff_gec_of_balanced hw hb' hE).mp h₁)
-  done
 
 /-- If two normalized weights dominate each other and are minimal w.r.t. `≤d` on normalized weights,
  then they are equal. -/
 lemma eq_of_dom_and_min' {w w' : Weight n d} (hw : w.normalized) (hw' : w'.normalized)
-  (h : w' ≤d w) (hmin : ∀ u, normalized u → u ≤d w → w ≤d u) :
+    (h : w' ≤d w) (hmin : ∀ u, normalized u → u ≤d w → w ≤d u) :
     w = w' := by
   have hminw := (min_Monotone_iff_min_normalized w).mpr hmin
                                           -- `w` is minimal w.r.t. monotone weights
@@ -304,7 +265,6 @@ lemma eq_of_dom_and_min' {w w' : Weight n d} (hw : w.normalized) (hw' : w'.norma
   have hE := E_dom_eq hw.1 hw'.1 h₁ h     -- `E w = E w'`
   exact lec_antisymm
     ((dom_iff_gec_of_balanced hw'.1 hb hE.symm).mp h) ((dom_iff_gec_of_balanced hw.1 hb' hE).mp h₁)
-  done
 
 /-!
 ### Domination and permutations
@@ -313,9 +273,7 @@ lemma eq_of_dom_and_min' {w w' : Weight n d} (hw : w.normalized) (hw' : w'.norma
 /-- If a monotone weight `w` dominates another weight `w'`, then `w` dominates `w'` made monotone
 by sorting. -/
 lemma dom_of_dom_perm {w w' : Weight n d} (hw : Monotone w) (hd : w ≤d w') : w ≤d w'.sorted := by
-  refine Tuple.bubble_sort_induction hd (fun g i j hij₁ hij₂ hwg ↦ ?_)
-  change Weight n d at g
-  change w ≤d g at hwg
+  refine Tuple.bubble_sort_induction hd (fun (g : Weight n d) i j hij₁ hij₂ hwg ↦ ?_)
   let g' := g.comp (Equiv.swap i j)
   change w ≤d g'
   simp only [dom_iff, f_le_iff, f_apply, SetCoe.forall, Subtype.coe_mk] at hwg ⊢
@@ -326,17 +284,15 @@ lemma dom_of_dom_perm {w w' : Weight n d} (hw : Monotone w) (hd : w ≤d w') : w
   have hgs : g' i ≤ g' j
   · simp only [Weight.comp, Function.comp_apply, Equiv.swap_apply_left, Equiv.swap_apply_right]
     exact le_of_lt hij₂
-    done
   intro a ha
   rw [E_perm g (Equiv.swap i j)]
   cases' le_or_lt (a i) (a j) with ham ham
   · rw [tsub_le_iff_right]
     specialize hwg (a.comp (Equiv.swap i j)) (testvecs_perm ha _)
     rw [pair_swap_eq g, tsub_le_iff_right] at hwg
-    refine hwg.trans ?_; clear hwg
+    refine hwg.trans ?_
     rw [add_le_add_iff_left]
     exact pair_swap_le (hw (le_of_lt hij₁)) ham
-    done
   · let a' := a.comp (Equiv.swap i j)
     have haa' : a'.comp (Equiv.swap i j) = a
     · ext
@@ -345,12 +301,10 @@ lemma dom_of_dom_perm {w w' : Weight n d} (hw : Monotone w) (hd : w ≤d w') : w
     have ham' : a' i ≤ a' j
     · simp only [Weight.comp, Function.comp_apply, Equiv.swap_apply_left, Equiv.swap_apply_right]
       exact le_of_lt ham
-      done
     have hag : g'.pair a' = pair g a := by simp only [pair_swap_eq g' a, hgg']
     have := pair_swap_le (n := n) (d := d) hgs ham'
     simp only [haa', hag] at this
     exact (hwg a ha).trans (Nat.sub_le_sub_left _ this)
-    done
 
 lemma dom_of_dom_perm' {w w' : Weight n d} (hw' : Monotone w') (hd : w ≤d w') :
     w.sorted ≤d w' := by
@@ -359,7 +313,6 @@ lemma dom_of_dom_perm' {w w' : Weight n d} (hw' : Monotone w') (hd : w ≤d w') 
   have help : w' = w'.comp (Tuple.sort w') ↔ Monotone w'
   · change w' ∘ Equiv.refl _ = _ ↔ Monotone (w' ∘ Equiv.refl _)
     exact Tuple.comp_sort_eq_comp_iff_monotone
-    done
   rw [help.mpr hw', comp_comp, eq_comm]
   apply Tuple.comp_sort_eq_comp_iff_monotone.mpr
   let w'' := (w'.comp (Tuple.sort w)).comp (Tuple.sort (w'.comp (Tuple.sort w)))
@@ -370,9 +323,7 @@ lemma dom_of_dom_perm' {w w' : Weight n d} (hw' : Monotone w') (hd : w ≤d w') 
     rw [← Function.comp.assoc w' (Tuple.sort w'), Tuple.sort_eq_refl_iff_monotone.mpr hw']
     simp only [Equiv.coe_refl, Function.comp.right_id]
     rfl
-    done
   rwa [← h]
-  done
 
 /-!
 ### Minimal complete sets of weight vectors
@@ -401,8 +352,7 @@ lemma M_is_complete : complete_set (M n d) := by
   by_cases hw₁ : ∃ w₂ : Weight n d, w₂.normalized ∧ w₂ < w₁
   · obtain ⟨w₂, hw₂n, hw₂⟩ := hw₁
     obtain ⟨w', hw'₁, hw'₂⟩ := h w₂ hw₂ hw₂n
-    exact ⟨w', hw'₁, (hw'₂.trans $ le_of_lt hw₂)⟩
-    done
+    exact ⟨w', hw'₁, hw'₂.trans <| le_of_lt hw₂⟩
   · push_neg at hw₁
     refine ⟨w₁, ⟨hw₁n, fun w' hw' h' ↦ ?_⟩, le_refl w₁⟩
     by_contra hf
@@ -410,7 +360,6 @@ lemma M_is_complete : complete_set (M n d) := by
     rw [lt_iff_le_not_le] at this
     push_neg at this
     exact hf (this h')
-    done
 
 /-- If a normalized weight `w` dominates a weight `w' ∈ M n d`, then `w = w'`. -/
 lemma eq_of_dom_in_M {w w' : Weight n d} (hw : w.normalized) (hd : w ≤d w') (hM : w' ∈ M n d) :
@@ -423,29 +372,25 @@ lemma M_is_minimal : minimal_complete_set (M n d) :=
 
 /-- If `S` is a minimal complete set of normalized weight vectors, then `S = M n d`. -/
 lemma M_is_unique {S : Set (Weight n d)} (hS₁ : ∀ w ∈ S, normalized w)
-  (hS₂ : minimal_complete_set S) :
+    (hS₂ : minimal_complete_set S) :
     S = M n d := by
   ext w
   refine ⟨fun h ↦ ⟨hS₁ w h, fun w' hw'₁ hw'₂ ↦ ?_⟩, fun h ↦ ?_⟩
   · obtain ⟨w₁, hw₁, hle⟩ := hS₂.1 w' hw'₁
     exact le_of_eq_of_le (hS₂.2 w₁ w hw₁ h (hle.trans hw'₂)).symm hle
-    done
   · obtain ⟨hw₁, hw₂⟩ := h
     obtain ⟨w', hw'₁, hw'₂⟩ := hS₂.1 w hw₁
     suffices heq : w' = w
     · exact heq ▸ hw'₁
-      done
     exact eq_of_dom_and_min' (hS₁ w' hw'₁) hw₁ (hw₂ w' (hS₁ w' hw'₁) hw'₂)
                              (fun u hu₁ hu₂ ↦ hw'₂.trans (hw₂ u hu₁ (hu₂.trans hw'₂)))
-    done
 
 lemma not_in_M_of_dom_ne {w : Weight n d}
-  (hw : ∃ w' : Weight n d, w'.normalized ∧ w' ≤d w ∧ w' ≠ w) :
+    (hw : ∃ w' : Weight n d, w'.normalized ∧ w' ≤d w ∧ w' ≠ w) :
     w ∉ M n d := by
   obtain ⟨w', hw'₁, hw'₂, hw'₃⟩ := hw
   by_contra' hf
   exact hw'₃ (eq_of_dom_in_M hw'₁ hw'₂ hf)
-  done
 
 /-- Non-zero elements of `M n d` have coprime entries. -/
 lemma gcd_eq_one_of_in_M {w : Weight n d} (h₀ : w ≠ 0) (hM : w ∈ M n d) :
@@ -456,47 +401,31 @@ lemma gcd_eq_one_of_in_M {w : Weight n d} (h₀ : w ≠ 0) (hM : w ∈ M n d) :
   · refine lt_of_le_of_ne (Nat.one_le_iff_ne_zero.mpr ?_) (Ne.symm hfg)
     by_contra' hg
     have h₀' : w = 0
-    · ext i
+    · ext
       simp only [Finset.mem_univ, Finset.gcd_eq_zero_iff.mp hg, zero_apply]
       done
     exact h₀ h₀'
-    done
   let w' : Weight n d := fun i ↦ (w i) / g
   have hww' : w = g • w'
   · ext i
     simp only [Pi.smul_apply, Algebra.id.smul_eq_mul]
     exact (Nat.mul_div_cancel_left' (Finset.gcd_dvd (Finset.mem_univ i))).symm
-    done
-  have hww'i : ∀ i, w i = g * w' i
-  · intro i
-    rw [hww']
-    simp only [smul_apply]
-    done
+  have hww'i i : w i = g * w' i := congrFun hww' i
   refine (not_in_M_of_dom_ne ⟨w', ⟨?_, ?_⟩, ?_, ?_⟩) hM
   · simp only
     rw [hM.1.1, Nat.zero_div]
     done
   · simp only
-    intro i j hij
-    exact Nat.div_le_div_right (hM.1.2 hij)
-    done
+    exact fun i j hij ↦ Nat.div_le_div_right (hM.1.2 hij)
   · rw [hww', dom_iff]
     have := f_le_mul w' g.pred
     rwa [Nat.succ_pred_eq_of_pos (zero_lt_one.trans hg)] at this
-    done
-  · have hnz : ∃ i, w i ≠ 0 := by by_contra' hf; exact h₀ (funext hf)
-    obtain ⟨i, hi⟩ := hnz
-    have hi' : w' i ≠ 0
-    · intro hf
-      have := hww'i i
-      rw [hf, mul_zero] at this
-      exact hi this
-      done
+  · obtain ⟨i, hi⟩ : ∃ i, w i ≠ 0 := by by_contra' hf; exact h₀ (funext hf)
+    have hi' : w' i ≠ 0 := fun hf ↦ hi <| mul_zero g ▸ hf ▸ hww'i i
     intro hf
     rw [hww'] at hf
     have h₁ := congr_fun hf i
     rw [smul_apply] at h₁
     exact hfg (mul_right_cancel₀ hi' ((one_mul _).trans h₁)).symm
-    done
 
 end Weight
