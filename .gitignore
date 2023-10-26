@@ -1,4 +1,5 @@
 /build
 /lake-packages/*
 /Weights/Scratch.lean
+lakefile.olean
 
