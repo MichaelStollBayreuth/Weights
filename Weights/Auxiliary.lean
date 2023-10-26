@@ -10,7 +10,8 @@ from Mathlib.
 namespace Weight
 
 /-- Helper lemma that might go into Mathlib -/
-lemma proportional {a b c d : ℕ} (h : a * d = b * c) (h' : Nat.Coprime a b) :
+lemma proportional_of_mul_eq_mul_of_coprime {a b c d : ℕ} (h : a * d = b * c)
+    (h' : Nat.Coprime a b) :
     ∃ m, c = m * a ∧ d = m * b := by
   obtain ⟨c₁, rfl⟩ := (Nat.Coprime.dvd_mul_left h').mp <| Dvd.intro d h
   obtain ⟨d₁, rfl⟩ := (Nat.Coprime.dvd_mul_left h'.symm).mp <| Dvd.intro _ h.symm
