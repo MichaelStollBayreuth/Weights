@@ -132,7 +132,7 @@ lemma eq_or_eq_neg_in_zmod_3 {d a b : ℕ} (hd : (d : ZMod 3) ≠ 0) (hcop : Nat
   have help : ∀ {a d : ZMod 3}, -d ≠ d → (a ≠ d ∧ a ≠ -d) → a = 0 := by decide
   have ha₀ := (ZMod.nat_cast_zmod_eq_zero_iff_dvd a 3).mp <| help hdd H
   have hb₀ := (ZMod.nat_cast_zmod_eq_zero_iff_dvd b 3).mp <| (help hdd H ▸ hab).symm
-  exact Nat.Prime.not_coprime_iff_dvd.mpr ⟨3, Nat.prime_three, ha₀, hb₀⟩ hcop 
+  exact Nat.Prime.not_coprime_iff_dvd.mpr ⟨3, Nat.prime_three, ha₀, hb₀⟩ hcop
 
 /-!
 ### Proof of Lemma 4.1
@@ -185,7 +185,7 @@ lemma add_le_of_mem_S_le {d a b : ℕ} (hd : (d : ZMod 3) ≠ 0) (hcop : Nat.Cop
   rw [(by rw [Hx₂] : (a : ℤ) * (3 * i₂ - d) = a * x₂),
       (by rw [Hx₁] : (b : ℤ) * (2 * d - 3 * i₁ - 3 * i₂) = b * x₁)] at hSle
   norm_cast at hSle -- `a * x₂ = b * x₁`
-  obtain ⟨m, hm₁, hm₂⟩ := proportional hSle hcop
+  obtain ⟨m, hm₁, hm₂⟩ := proportional_of_mul_eq_mul_of_coprime hSle hcop
   rw [hm₁, hm₂, ← mul_add] at hx
   have hm₀ : 0 < m :=
     (Nat.eq_zero_or_pos m).resolve_left (by rintro rfl; linarith only [Hx₂', hm₂])
@@ -222,7 +222,7 @@ lemma le_delta_of_mem_S_ge {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSge : mem_S
   have ha : a ≤ x₁ := Nat.le_of_dvd Hx₁' <| hcop.dvd_of_dvd_mul_left <| Dvd.intro x₂ hSge
   have hb : b ≤ x₂
   · cases' eq_or_ne x₂ 0 with H H
-    · simp only [H, mul_zero, zero_eq_mul] at hSge 
+    · simp only [H, mul_zero, zero_eq_mul] at hSge
       -- `hSge : b = 0 ∨ x₁ = 0`
       rcases hSge with rfl | rfl
       · exact Nat.zero_le _
@@ -249,7 +249,7 @@ lemma le_of_mem_S_ge {d a b : ℕ} (hd : (d : ZMod 3) ≠ 0) (hcop : Nat.Coprime
   rw [(by rw [Hx₂]; ring : -((a : ℤ) * (3 * i₂ - d)) = a * x₂),
       (by rw [Hx₁]; ring : -((b : ℤ) * (2 * d - 3 * i₁ - 3 * i₂)) = b * x₁)] at hSge
   norm_cast at hSge -- `a * x₂ = b * x₁`
-  obtain ⟨m, hm₁, hm₂⟩ := proportional hSge hcop
+  obtain ⟨m, hm₁, hm₂⟩ := proportional_of_mul_eq_mul_of_coprime hSge hcop
   rw [hm₁] at hx₁
   rw [hm₂] at hx₂
   have hm₀ : 0 < m :=
@@ -302,7 +302,7 @@ lemma dom_of_mem_interior_left (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterv
           Int.mul_nonpos_of_nonneg_of_nonpos (Int.ofNat_nonneg I.a₁) hbi.le
         have H₂ : I.b₁ * ai < 0 :=
           Int.mul_neg_of_pos_of_neg (Int.ofNat_pos.mpr I.b₁_pos) (Int.not_le.mp hai)
-        linarith        
+        linarith
         done
       have memS : mem_S_le d ai (-bi) :=
         ⟨Int.neg_pos_of_neg hbi, i.val 1, i.val 2, by linarith, by linarith, by ring⟩
@@ -324,7 +324,7 @@ lemma dom_of_mem_interior_left (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterv
     _ ≤ k₁ * pair' (of_fraction d I.a₁ I.b₁) (v i) + k₂ * pair' (of_fraction d I.a₂ I.b₂) (v i) :=
         add_le_add (Int.mul_le_mul_of_nonneg_right (by exact_mod_cast hk₁) hi)
                    (Int.mul_le_mul_of_nonneg_right (by exact_mod_cast hk₂.le) hi')
-    _ = _ := by 
+    _ = _ := by
         rw [h₁, h₂, pair'_of_fraction_add, Pi.add_apply, pair'_of_fraction_mul,
             pair'_of_fraction_mul]
   done
@@ -360,7 +360,7 @@ lemma dom_of_mem_interior_right (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInter
           Int.mul_nonpos_of_nonneg_of_nonpos (Int.ofNat_nonneg I.b₂) hai.le
         have H₂ : I.a₂ * bi < 0 :=
           Int.mul_neg_of_pos_of_neg (Int.ofNat_pos.mpr I.a₂_pos) (Int.not_le.mp hbi)
-        linarith        
+        linarith
         done
       have memS : mem_S_ge d (-ai) bi
       · refine ⟨Int.neg_pos_of_neg hai, i.val 1, i.val 2, ?_, by linarith, by linarith, by ring⟩
@@ -387,7 +387,7 @@ lemma dom_of_mem_interior_right (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInter
     _ ≤ k₁ * pair' (of_fraction d I.a₁ I.b₁) (v i) + k₂ * pair' (of_fraction d I.a₂ I.b₂) (v i) :=
         add_le_add (Int.mul_le_mul_of_nonneg_right (by exact_mod_cast hk₁.le) hi')
                    (Int.mul_le_mul_of_nonneg_right (by exact_mod_cast hk₂) hi)
-    _ = _ := by 
+    _ = _ := by
         rw [h₁, h₂, pair'_of_fraction_add, Pi.add_apply, pair'_of_fraction_mul,
             pair'_of_fraction_mul]
   done
@@ -395,7 +395,7 @@ lemma dom_of_mem_interior_right (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInter
 lemma dom_of_proportional (d : ℕ) [NeZero d] {a b a' b' : ℕ} (hab : a ≠ 0 ∨ b ≠ 0)
     (hc : a'.Coprime b') (h : a' * b = b' * a) :
     of_fraction d a' b' ≤d of_fraction d a b := by
-  obtain ⟨m, ha, hb⟩ := proportional h hc
+  obtain ⟨m, ha, hb⟩ := proportional_of_mul_eq_mul_of_coprime h hc
   have hmz : m ≠ 0 :=
     hab.elim (fun haz ↦ left_ne_zero_of_mul <| ha ▸ haz)
              (fun hbz ↦ left_ne_zero_of_mul <| hb ▸ hbz)
@@ -420,7 +420,7 @@ lemma dom_of_mem (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterval} (hab : a �
   · rw [mul_comm b, mul_comm d, hyp]
     done
   rcases eq_or_eq_or_mem_interior_of_mem hm with H | H | H
-  · exact Or.inl <| dom_of_proportional d hab I.coprime₁ <| help H 
+  · exact Or.inl <| dom_of_proportional d hab I.coprime₁ <| help H
   · exact Or.inr <| dom_of_proportional d hab I.coprime₂ <| help H
   · rcases h with h | h
     · exact Or.inl <| dom_of_mem_interior_left d H h
@@ -582,7 +582,7 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
         done
       linarith
       done
-    · -- case `k₁ ≥ 2` 
+    · -- case `k₁ ≥ 2`
       have hs₂bd : 2 * I.a₁ + 3 * I.a₂ ≤ s₂ := by rw [hks₂]; gcongr
       have ht₂bd : 2 * I.b₁ + 3 * I.b₂ ≤ t₂ := by rw [hkt₂]; gcongr
       linarith
