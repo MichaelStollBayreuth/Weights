@@ -302,7 +302,7 @@ lemma f_eq_on_shift (w : Weight n d) (k : ℕ) : (w + k • (1 : Weight n d)).f 
 /-- The map associated to `w` is pointwise below that associated to a positive multiple of `w`. -/
 lemma f_le_mul (w : Weight n d) (k : ℕ) : w.f ≤ (k.succ • w).f := by
   simp only [E, f_le_iff, f_apply, sum_smul, pair_smul_left, SetCoe.forall, Subtype.coe_mk]
-  intro a ?_
+  intro a _
   have H : w.sum * d / (n + 1) + 1 - w.pair a
              ≤ k.succ * (w.sum * d / (n + 1)) + 1 - k.succ * w.pair a
   · set m := w.sum * d / (n + 1)
@@ -310,17 +310,12 @@ lemma f_le_mul (w : Weight n d) (k : ℕ) : w.f ≤ (k.succ • w).f := by
     cases' lt_or_le m l with hlt hle
     · rw [Nat.sub_eq_zero_of_le hlt]
       exact Nat.zero_le _
-    · rw [← tsub_add_eq_add_tsub hle, ← tsub_add_eq_add_tsub (mul_le_mul' le_rfl hle)]
-      apply add_le_add_right
-      rw [← Nat.mul_sub_left_distrib]
-      exact Nat.le_mul_of_pos_left (Nat.succ_pos k)
-  calc w.sum * d / (n + 1) + 1 - w.pair a
-    _ ≤ k.succ * (w.sum * d / (n + 1)) + 1 - k.succ * w.pair a := H
-    _ ≤ k.succ * w.sum * d / (n + 1) + 1 - k.succ * w.pair a := by
-      apply Nat.sub_le_sub_right
-      apply add_le_add_right
-      rw [mul_assoc]
-      exact Nat.mul_div_le_mul_div_assoc ..
+    · rw [← tsub_add_eq_add_tsub hle, ← tsub_add_eq_add_tsub (mul_le_mul' le_rfl hle),
+          ← Nat.mul_sub_left_distrib]
+      exact add_le_add_right (Nat.le_mul_of_pos_left (Nat.succ_pos k)) 1
+  refine H.trans <| Nat.sub_le_sub_right (add_le_add_right ?_ _) _
+  rw [mul_assoc]
+  exact Nat.mul_div_le_mul_div_assoc ..
 
 /-!
 ### Domination
