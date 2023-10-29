@@ -13,12 +13,11 @@ the weights in a minimal complete set of weight vectors have entries bounded by 
 /-- The normalized weight vector of dimension `n = 2` associated to a fraction `a/b` -/
 def of_fraction (d a b : ℕ) : Weight 2 d := ![0, b, a + b]
 
+open Matrix in
 lemma pair'_of_fraction (d a b : ℕ) (z : Fin (Nat.succ 2) → ℤ) :
     pair' (of_fraction d a b ) z = a * z 2 + b * (z 1 + z 2) := by
-  simp only [of_fraction, pair']
-  rw [Fin.sum_univ_three, Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_two]
-  rw [Matrix.head_cons, Matrix.tail_cons, Matrix.head_cons]
-  push_cast
+  simp only [pair', of_fraction, Fin.sum_univ_three, cons_val_zero, cons_val_one, head_cons,
+    cons_val_two, tail_cons, Nat.cast_add]
   ring
   done
 
@@ -26,50 +25,44 @@ lemma pair'_of_fraction_add (d a₁ b₁ a₂ b₂ : ℕ) :
     pair' (of_fraction d (a₁ + a₂) (b₁ + b₂)) =
       pair' (of_fraction d a₁ b₁) + pair' (of_fraction d a₂ b₂) := by
   ext z
-  simp_rw [Pi.add_apply, pair'_of_fraction]
-  push_cast
+  simp_rw [Pi.add_apply, pair'_of_fraction, Nat.cast_add]
   ring
   done
 
 lemma pair'_of_fraction_mul (d a b k : ℕ) (z : Fin 3 → ℤ) :
     pair' (of_fraction d (k * a) (k * b)) z = k * pair' (of_fraction d a b) z := by
-  simp_rw [pair'_of_fraction]
-  push_cast
+  simp_rw [pair'_of_fraction, Nat.cast_mul]
   ring
   done
 
 /-- Every normalized weight vector for dimension 2 is of the form `of_fraction a b`. -/
 lemma ex_of_fraction {d : ℕ} [NeZero d] {w : Weight 2 d} (h : w.normalized) :
     ∃ a b, w = of_fraction d a b := by
-  refine ⟨w 2 - w 1, w 1, ?_⟩
-  ext i
+  refine ⟨w 2 - w 1, w 1, funext <| fun i ↦ ?_⟩
   fin_cases i
   · simp [of_fraction, h.1]
   · simp [of_fraction]
-  · change w 2 = w 2 - w 1 + w 1
-    have := h.2 (by norm_num : (1 : Fin 3) ≤ 2)
-    exact Nat.eq_add_of_sub_eq this rfl
+  · exact Nat.eq_add_of_sub_eq (h.2 (by norm_num : (1 : Fin 3) ≤ 2)) rfl
   done
 
 /-- Every vector of the form `of_fraction d a b` is normalized. -/
 lemma normalized_of_of_fraction (d a b : ℕ) [NeZero d] : (of_fraction d a b).normalized := by
   refine ⟨?_, ?_⟩
   · simp [of_fraction]
-  · have help : ∀ i j : Fin 3, i ≤ j → i = 0 ∨ (i = 1 ∧ (j = 1 ∨ j = 2)) ∨ (i = 2 ∧ j = 2)
+  · have help : ∀ i j : Fin 3, i ≤ j → i = 0 ∨ (i = j) ∨ (i = 1 ∧ j = 2)
     · decide
     intro i j hij
-    rcases help i j hij with rfl | ⟨rfl, rfl | rfl⟩ | ⟨rfl, rfl⟩
+    rcases help i j hij with rfl | rfl | ⟨rfl, rfl⟩
     · simp [of_fraction]
     · exact le_rfl
     · simp [of_fraction]
-    · exact le_rfl
   done
 
 /-- The entries of `of_fraction d a b` are bounded by `a+b`. -/
 lemma of_fraction_le (d : ℕ) [NeZero d] (a b : ℕ) (i : Fin 3) : of_fraction d a b i ≤ a + b :=
   (normalized_of_of_fraction d a b).2 <| Fin.le_val_last i
 
-/-- A useful combination of tactics: apply map to `ℤ/3ℤ` to `t` and simplify. / -/
+/-- A useful combination of tactics: apply reduction map to `ℤ/3ℤ` to `t` and simplify. / -/
 macro "reduce_mod_3" t:term : tactic => `(tactic|(
   apply_fun (fun z ↦ (z : ZMod 3)) at $t:term
   push_cast at $t:term
