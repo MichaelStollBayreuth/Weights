@@ -361,8 +361,6 @@ lemma dom_of_mem_interior_right (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInter
       obtain ⟨aa, haa⟩ : ∃ x : ℕ, (x : ℤ) = -ai :=
         ⟨(-ai).toNat, Int.toNat_of_nonneg (Int.neg_nonneg_of_nonpos hai.le)⟩
       obtain ⟨bb, hbb⟩ : ∃ x : ℕ, (x : ℤ) = bi := ⟨bi.toNat, Int.toNat_of_nonneg hbi⟩
-      -- have Hbi : bi.toNat = bi := Int.toNat_of_nonneg hbi
-      -- have Hai : (-ai).toNat = -ai := Int.toNat_of_nonneg (Int.neg_nonneg_of_nonpos hai.le)
       by_contra H
       have hmem : mem aa bb I := by constructor <;> { zify; rw [haa, hbb]; linarith }
       specialize h aa bb (haa.symm ▸ hbb.symm ▸ memS) hmem
