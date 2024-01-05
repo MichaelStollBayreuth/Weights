@@ -27,7 +27,7 @@ lemma trunc_mono_lec {w w' : Weight n d} (h : w ≤c w') : w.trunc ≤c w'.trunc
   exact fun j ↦ min_le_min (h j) (E_lec_mono h)
 
 lemma trunc_lec (w : Weight n d) : w.trunc ≤c w := by
-  simp_rw [trunc, lec_iff]
+  simp_rw [lec_iff, trunc_apply]
   exact (fun j ↦ min_le_left _ _)
 
 lemma trunc_le_E (w : Weight n d) (j : Fin n.succ) : w.trunc j ≤ w.E := by
@@ -86,7 +86,7 @@ lemma trunc_dom' {w : Weight n d} (hE : w.trunc.E = w.E) : w ≤d w.trunc := by
   rw [dom_iff, f_le_iff]
   intro a
   simp_rw [f, ← hE]
-  exact Nat.sub_le_sub_left _ (trunc_pair_le_pair w a)
+  exact Nat.sub_le_sub_left (trunc_pair_le_pair w a) _
 
 /-- The converse: if `w` dominates `trunc w` and `w 0 = 0`, then `E (trunc w) = E w`. -/
 lemma E_trunc_eq_E_of_dom {w : Weight n d} (h : w ≤d w.trunc) (h' : w 0 = 0) : w.trunc.E = w.E :=
@@ -100,7 +100,7 @@ lemma E_trunc_eq_E_of_dom {w : Weight n d} (h : w ≤d w.trunc) (h' : w 0 = 0) :
 def balanced (w : Weight n d) : Prop := ∀ j, w j ≤ E w
 
 lemma balanced_iff_eq_trunc (w : Weight n d) : w.balanced ↔ w.trunc = w := by
-  simp_rw [balanced, trunc]
+  simp_rw [balanced]
   constructor <;> intro h
   · ext j
     exact min_eq_left_iff.mpr (h j)
@@ -126,7 +126,7 @@ for each dimension `n` and degree `d`; see below.
 /-- If `w` and `w'` have the same exponent, then `w' ≤c w` implies that `w` dominates `w'`. -/
 lemma dom_of_gec {w w' : Weight n d} (hE : E w = E w') (h : w' ≤c w) : w ≤d w' := by
   simp only [dom_iff, f_le_iff, f_apply, SetCoe.forall, Subtype.coe_mk, hE]
-  exact fun a _ ↦ Nat.sub_le_sub_left _ (pair_le_pair_of_lec _ _ _ h)
+  exact fun a _ ↦ Nat.sub_le_sub_left (pair_le_pair_of_lec _ _ _ h) _
 
 /-- If `w` has first entry `0`, `w'` is balanced, and `E w = E w'`, then `w ≤d w' ↔ w' ≤c w`. -/
 lemma dom_iff_gec_of_balanced {w w' : Weight n d} (hw₁ : w 0 = 0) (hw'₂ : w'.balanced)
@@ -304,7 +304,7 @@ lemma dom_of_dom_perm {w w' : Weight n d} (hw : Monotone w) (hd : w ≤d w') : w
     have hag : g'.pair a' = pair g a := by simp only [pair_swap_eq g' a, hgg']
     have := pair_swap_le (n := n) (d := d) hgs ham'
     simp only [haa', hag] at this
-    exact (hwg a ha).trans (Nat.sub_le_sub_left _ this)
+    exact (hwg a ha).trans (Nat.sub_le_sub_left this _)
 
 lemma dom_of_dom_perm' {w w' : Weight n d} (hw' : Monotone w') (hd : w ≤d w') :
     w.sorted ≤d w' := by
@@ -389,7 +389,7 @@ lemma not_in_M_of_dom_ne {w : Weight n d}
     (hw : ∃ w' : Weight n d, w'.normalized ∧ w' ≤d w ∧ w' ≠ w) :
     w ∉ M n d := by
   obtain ⟨w', hw'₁, hw'₂, hw'₃⟩ := hw
-  by_contra' hf
+  by_contra! hf
   exact hw'₃ (eq_of_dom_in_M hw'₁ hw'₂ hf)
 
 /-- Non-zero elements of `M n d` have coprime entries. -/
@@ -399,7 +399,7 @@ lemma gcd_eq_one_of_in_M {w : Weight n d} (h₀ : w ≠ 0) (hM : w ∈ M n d) :
   by_contra hfg
   have hg : 1 < g
   · refine lt_of_le_of_ne (Nat.one_le_iff_ne_zero.mpr ?_) (Ne.symm hfg)
-    by_contra' hg
+    by_contra! hg
     have h₀' : w = 0
     · ext
       simp only [Finset.mem_univ, Finset.gcd_eq_zero_iff.mp hg, zero_apply]
@@ -420,7 +420,7 @@ lemma gcd_eq_one_of_in_M {w : Weight n d} (h₀ : w ≠ 0) (hM : w ∈ M n d) :
   · rw [hww', dom_iff]
     have := f_le_mul w' g.pred
     rwa [Nat.succ_pred_eq_of_pos (zero_lt_one.trans hg)] at this
-  · obtain ⟨i, hi⟩ : ∃ i, w i ≠ 0 := by by_contra' hf; exact h₀ (funext hf)
+  · obtain ⟨i, hi⟩ : ∃ i, w i ≠ 0 := by by_contra! hf; exact h₀ (funext hf)
     have hi' : w' i ≠ 0 := fun hf ↦ hi <| mul_zero g ▸ hf ▸ hww'i i
     intro hf
     rw [hww'] at hf

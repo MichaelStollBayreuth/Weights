@@ -9,7 +9,7 @@ We define *(feasible) basic intervals* and derive the relevant properties.
 -/
 
 /-- A *basic interval* is an interval `[a₁/b₁, a₂/b₂]` whose endpoints are nonnegative
-rational numbers (or `∞ = 1/0`) such that `a₂ b₁ - a₁ b₂ = 1`. 
+rational numbers (or `∞ = 1/0`) such that `a₂ b₁ - a₁ b₂ = 1`.
 Such an interval can be obtained by starting from `[0/1, 1/0]` and successively splitting
 an interval `[a₁/b₁, a₂/b₂]` into the two intervals `[a₁/b₁, (a₁+a₂)/(b₁+b₂)]` and
 `[(a₁+a₂)/(b₁+b₂), a₂/b₂]`-/
@@ -91,7 +91,7 @@ lemma coprime (I : BasicInterval) : Nat.Coprime (I.a₂ * I.b₁) (I.a₁ * I.b�
   intros c h₁ h₂
   rw [I.rel] at h₁
   exact Nat.dvd_one.mp <| (Nat.dvd_add_right h₂).mp h₁
-  done 
+  done
 
 lemma coprime₁ (I : BasicInterval) : I.a₁.Coprime I.b₁ :=
   (Nat.Coprime.coprime_mul_right_right <| Nat.Coprime.coprime_mul_left I.coprime).symm
@@ -118,8 +118,8 @@ lemma eq_or_eq_or_mem_interior_of_mem {a b : ℕ} {I : BasicInterval} (h : mem a
   · exact Or.inl H₁.symm
   cases' h₂.eq_or_lt with H₂ H₂
   · exact Or.inr <| Or.inl H₂
-  exact Or.inr <| Or.inr ⟨H₁, H₂⟩ 
-  done  
+  exact Or.inr <| Or.inr ⟨H₁, H₂⟩
+  done
 
 lemma mem_of_mem_interior {a b : ℕ} {I : BasicInterval} (h : mem_interior a b I) : mem a b I := by
   simp only [mem, mem_interior] at h ⊢
@@ -152,7 +152,7 @@ lemma mem_left_or_mem_right {a b : ℕ} (I : BasicInterval) (h : mem a b I) :
       done
     · refine Or.inr ⟨hl.le, h.2⟩
       done
-    
+
 
 /-- A fraction `a/b` that lies in a basic interval `[a₁/b₁, a₂/b₂]` satisfies
 `a = k₁ a₁ + k₂ a₂` and `b = k₁ b₁ + k₂ b₂` for some natural numbers `k₁` and `k₂`. -/
@@ -166,7 +166,7 @@ lemma exists_of_mem {a b : ℕ} {I : BasicInterval} (h : mem a b I) :
     have ⟨k₁, hk⟩ : ∃ k, k₁' = k + k₂ := by
       rw [← le_iff_exists_add']
       obtain ⟨_, h₂⟩ := h
-      simp only [H₁, left_b₂, mul_add, add_mul, H₂, left_a₂] at h₂ 
+      simp only [H₁, left_b₂, mul_add, add_mul, H₂, left_a₂] at h₂
       have rel := I.rel
       zify at h₂ rel ⊢
       rw [← sub_nonneg] at h₂ ⊢
@@ -182,7 +182,7 @@ lemma exists_of_mem {a b : ℕ} {I : BasicInterval} (h : mem a b I) :
     have ⟨k₂, hk⟩ : ∃ k, k₂' = k + k₁ := by
       rw [← le_iff_exists_add']
       obtain ⟨h₁, _⟩ := h
-      simp only [H₂, right_a₁, mul_add, add_mul, H₁, right_b₁] at h₁ 
+      simp only [H₂, right_a₁, mul_add, add_mul, H₁, right_b₁] at h₁
       have rel := I.rel
       zify at h₁ rel ⊢
       rw [← sub_nonneg] at h₁ ⊢
@@ -207,7 +207,7 @@ lemma exists_of_mem_interior {a b : ℕ} {I : BasicInterval} (h : mem_interior a
     exact lt_irrefl _ h
     done
   · rintro rfl
-    simp only [zero_mul, add_zero] at h₁ h₂ 
+    simp only [zero_mul, add_zero] at h₁ h₂
     replace h := h.1
     simp only [h₁, mul_assoc, h₂, mul_comm I.a₁] at h
     exact lt_irrefl _ h
@@ -217,7 +217,7 @@ lemma exists_of_mem_interior {a b : ℕ} {I : BasicInterval} (h : mem_interior a
 def feasible (d : ℕ) (I : BasicInterval) : Prop :=
   I.a₁ + I.b₁ ≤ d ∧ I.a₂ + I.b₂ ≤ d ∧ d < I.a₁ + I.a₂ + I.b₁ + I.b₂
 
-lemma feasible_base : base.feasible 1 := by simp only [feasible, and_self]
+lemma feasible_base : base.feasible 1 := by simp [feasible]
 
 lemma feasible_left_or_right {d : ℕ} {I : BasicInterval} (h : I.feasible d) :
     I.feasible d.succ ∨ (I.left.feasible d.succ ∧ I.right.feasible d.succ) := by

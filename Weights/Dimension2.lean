@@ -42,7 +42,7 @@ lemma ex_of_fraction {d : ℕ} [NeZero d] {w : Weight 2 d} (h : w.normalized) :
   fin_cases i
   · simp [of_fraction, h.1]
   · simp [of_fraction]
-  · exact Nat.eq_add_of_sub_eq (h.2 (by norm_num : (1 : Fin 3) ≤ 2)) rfl
+  · exact Nat.eq_add_of_sub_eq (h.2 (Fin.coe_sub_iff_le.mp rfl)) rfl
   done
 
 /-- Every vector of the form `of_fraction d a b` is normalized. -/
@@ -94,14 +94,15 @@ lemma mem_S_le_of_proportional {d g : ℕ} {a b : ℤ} (hg : 0 < g) (h : mem_S_l
   obtain ⟨h₁, i₁, i₂, h₂, h₃, h₄⟩ := h
   simp_rw [mul_comm _ (g : ℤ), mul_assoc] at h₄
   replace hg : (0 : ℤ) < g := Nat.cast_pos.mpr hg
-  exact ⟨(zero_lt_mul_right hg).mp h₁, i₁, i₂, h₂, h₃, Int.eq_of_mul_eq_mul_left hg.ne' h₄⟩
+  exact ⟨(mul_pos_iff_of_pos_right hg).mp h₁, i₁, i₂, h₂, h₃, Int.eq_of_mul_eq_mul_left hg.ne' h₄⟩
 
 lemma mem_S_ge_of_proportional {d g : ℕ} {a b : ℤ} (hg : 0 < g) (h : mem_S_ge d (a * g) (b * g)) :
     mem_S_ge d a b := by
   obtain ⟨h₁, i₁, i₂, h', h₂, h₃, h₄⟩ := h
   simp_rw [mul_comm _ (g : ℤ), mul_assoc] at h₄
   replace hg : (0 : ℤ) < g := Nat.cast_pos.mpr hg
-  exact ⟨(zero_lt_mul_right hg).mp h₁, i₁, i₂, h', h₂, h₃, Int.eq_of_mul_eq_mul_left hg.ne' h₄⟩
+  exact ⟨(mul_pos_iff_of_pos_right hg).mp h₁, i₁, i₂, h', h₂, h₃,
+    Int.eq_of_mul_eq_mul_left hg.ne' h₄⟩
 
 /-!
 ### Some helper lemmas
@@ -121,7 +122,7 @@ lemma eq_or_eq_neg_in_zmod_3 {d a b : ℕ} (hd : (d : ZMod 3) ≠ 0) (hcop : Nat
     (hab : (a : ZMod 3) = b) :
     (a : ZMod 3) = d ∨ (a : ZMod 3) = -d := by
   have hdd := not_eq_neg_self hd
-  by_contra' H
+  by_contra! H
   have help : ∀ {a d : ZMod 3}, -d ≠ d → (a ≠ d ∧ a ≠ -d) → a = 0 := by decide
   have ha₀ := (ZMod.nat_cast_zmod_eq_zero_iff_dvd a 3).mp <| help hdd H
   have hb₀ := (ZMod.nat_cast_zmod_eq_zero_iff_dvd b 3).mp <| (help hdd H ▸ hab).symm
@@ -185,7 +186,7 @@ lemma add_le_of_mem_S_le {d a b : ℕ} (hd : (d : ZMod 3) ≠ 0) (hcop : Nat.Cop
   rcases eq_or_eq_neg_in_zmod_3 hd hcop hab with had | had -- `a = d ∨ a = -d` in `ℤ/3ℤ`
   · refine Or.inr ⟨had, ?_⟩
     have hm : 2 ≤ m
-    · by_contra' H
+    · by_contra! H
       obtain rfl : m = 1 := by linarith
       have hx₁' : (x₁ : ZMod 3) = -d := by reduce_mod_3 Hx₁
       rw [hm₁, one_mul, had, eq_comm] at hx₁'
@@ -251,7 +252,7 @@ lemma le_of_mem_S_ge {d a b : ℕ} (hd : (d : ZMod 3) ≠ 0) (hcop : Nat.Coprime
   · exact Or.inl ⟨had, (Nat.le_mul_of_pos_left hm₀).trans hx₁,
                        (Nat.le_mul_of_pos_left hm₀).trans hx₂⟩
   · have hm : 2 ≤ m
-    · by_contra' H
+    · by_contra! H
       obtain rfl : m = 1 := by linarith
       have hx₁' : (x₁ : ZMod 3) = d := by reduce_mod_3 Hx₁
       rw [hm₁, one_mul, had] at hx₁'
@@ -280,7 +281,7 @@ lemma dom_of_mem_interior_left (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterv
     set bi : ℤ := d - 3 * (i.val 2) with hbi_def
     set ai : ℤ := d - 3 * (i.val 1) + (d - 3 * (i.val 2)) with hai_def
     cases' le_or_lt 0 bi with hbi hbi
-    · refine (zero_le_mul_right (Int.ofNat_pos.mpr I.b₁_pos)).mp ?_
+    · refine (mul_nonneg_iff_of_pos_right (Int.ofNat_pos.mpr I.b₁_pos)).mp ?_
       calc
         (0 : ℤ)
           ≤ (I.a₁ * bi + I.b₁ * ai) * I.b₂           := Int.mul_nonneg hi (Int.ofNat_nonneg I.b₂)
@@ -334,7 +335,7 @@ lemma dom_of_mem_interior_right (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInter
     set bi : ℤ := d - 3 * (i.val 2) with hbi_def
     set ai : ℤ := d - 3 * (i.val 1) + (d - 3 * (i.val 2)) with hai_def
     cases' le_or_lt 0 ai with hai hai
-    · refine (zero_le_mul_right (Int.ofNat_pos.mpr I.a₂_pos)).mp ?_
+    · refine (mul_nonneg_iff_of_pos_right (Int.ofNat_pos.mpr I.a₂_pos)).mp ?_
       calc
         (0 : ℤ)
           ≤ (I.a₂ * bi + I.b₂ * ai) * I.a₁           := Int.mul_nonneg hi (Int.ofNat_nonneg I.a₁)
@@ -468,7 +469,7 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
     (∀ (a' b' : ℕ), mem_S_le d a' b' → mem a' b' I → a' * I.b₂ = b' * I.a₂) ∨
     ∀ (a' b' : ℕ), mem_S_ge d a' b' → mem a' b' I → a' * I.b₁ = b' * I.a₁ := by
   rw [← condition_iff_weaker_le, ← condition_iff_weaker_ge]
-  by_contra' H
+  by_contra! H
   obtain ⟨⟨s₁, t₁, hcop₁, hSle, hmem₁, hne₁⟩, ⟨s₂, t₂, hcop₂, hSge, hmem₂, hne₂⟩⟩ := H
   cases' eq_or_ne (d : ZMod 3) 0 with hd hd
   · -- case `d` is divisble by 3
@@ -552,7 +553,7 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
       have : d < 2 * (I.a₂ + I.b₂)
       · calc
           d = 2 * d - d                 := by rw [Nat.two_mul, Nat.add_sub_cancel]
-          _ ≤ 2 * d - 2 * (I.a₁ + I.b₁) := Nat.sub_le_sub_left _ H₄
+          _ ≤ 2 * d - 2 * (I.a₁ + I.b₁) := Nat.sub_le_sub_left H₄ _
           _ < 2 * (I.a₂ + I.b₂)         :=
                 Nat.sub_lt_left_of_lt_add (H₄.trans <| Nat.le_mul_of_pos_left (zero_lt_two))
                                           (by linarith)
@@ -575,7 +576,7 @@ theorem dom_by_max_le_d (d : ℕ) [NeZero d] (a b : ℕ) :
     exact ⟨a, b, h, Eq.le rfl⟩
   · -- case `a + b > d`. Get feasible interval that contains `a/b`.
     obtain ⟨I, hI, hIab⟩ := mem_feasible d a b
-    have hab : a ≠ 0 ∨ b ≠ 0 := by by_contra' hab; linarith
+    have hab : a ≠ 0 ∨ b ≠ 0 := by by_contra! hab; linarith
     cases' dom_of_mem d hab hIab (condition_of_feasible hI) with H H
     · exact ⟨I.a₁, I.b₁, hI.1, H⟩
     · exact ⟨I.a₂, I.b₂, hI.2.1, H⟩

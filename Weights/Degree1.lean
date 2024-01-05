@@ -20,7 +20,7 @@ lemma testvecs1 (n : ℕ) : Function.Bijective (tw n 1) := by
   simp [tw, tw']
   have h : ∃ j, a.val j = 1
   · have h₁ : ∃ j, 0 < a.val j
-    · by_contra' hf
+    · by_contra! hf
       simp only [(fun k ↦ Nat.eq_zero_of_le_zero (hf k)), Finset.sum_const_zero,
                    Nat.zero_ne_one] at h₂
       done
@@ -43,7 +43,7 @@ lemma testvecs1 (n : ℕ) : Function.Bijective (tw n 1) := by
     have hjs : ¬j ∈ s := by simp
     rw [← hs, Finset.sum_insert hjs, hj] at h₂
     simp only [Finset.mem_univ, not_true, add_right_eq_self, Finset.sum_eq_zero_iff,
-      Finset.mem_sdiff, Finset.mem_singleton, true_and] at h₂ 
+      Finset.mem_sdiff, Finset.mem_singleton, true_and] at h₂
     exact h₂ k hk
     done
   ext k
@@ -112,7 +112,7 @@ lemma w1_minimal {n : ℕ} [NeZero n] {w : Weight n 1} (hw : w 0 = 0) : (w1 n) �
     done
 
 /-- If `w` is minimal w.r.t. dominance for `d = 1` and has first entry `0`, then `w = w1`. -/
-lemma w1_unique {n : ℕ} [NeZero n] {w : Weight n 1} (hw : w 0 = 0) 
+lemma w1_unique {n : ℕ} [NeZero n] {w : Weight n 1} (hw : w 0 = 0)
   (hmin : ∀ w', w' ≤d w → w ≤d w') :
     w = w1 n := by
   have h₁ := w1_minimal hw
