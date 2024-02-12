@@ -50,7 +50,7 @@ lemma trunc_pair_lb (w a : Weight n d) (h : ∃ j, w.E < w j ∧ 0 < a j) : w.E 
   obtain ⟨j, hj, ha⟩ := h
   have hm := mul_le_pair w.trunc a j
   rw [trunc_apply, min_eq_right_of_lt hj] at hm
-  exact (Nat.le_mul_of_pos_left ha).trans hm
+  exact (Nat.le_mul_of_pos_left _ ha).trans hm
 
 lemma trunc_pair_le_pair (w a : Weight n d) : w.trunc.pair a ≤ w.pair a :=
   pair_le_pair_of_lec w.trunc w a (trunc_lec w)
@@ -321,7 +321,7 @@ lemma dom_of_dom_perm' {w w' : Weight n d} (hw' : Monotone w') (hd : w ≤d w') 
                     Tuple.sort ((w'.comp (Tuple.sort w')).comp (Tuple.sort w))))
   · simp only [Weight.comp, Equiv.Perm.coe_mul]
     rw [← Function.comp.assoc w' (Tuple.sort w'), Tuple.sort_eq_refl_iff_monotone.mpr hw']
-    simp only [Equiv.coe_refl, Function.comp.right_id]
+    simp only [Equiv.coe_refl, Function.comp_id]
     rfl
   rwa [← h]
 

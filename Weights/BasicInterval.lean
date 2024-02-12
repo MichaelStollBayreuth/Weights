@@ -249,7 +249,7 @@ lemma gt_of_mem_interior_feasible {a b d : ℕ} {I : BasicInterval}
     d < I.a₁ + I.a₂ + I.b₁ + I.b₂                       := hI.2.2
     _ = I.a₁ + I.b₁ + (I.a₂ + I.b₂)                     := by abel
     _ ≤ k₁ * (I.a₁ + I.b₁) + k₂ * (I.a₂ + I.b₂)         :=
-      Nat.add_le_add (Nat.le_mul_of_pos_left hk₁) (Nat.le_mul_of_pos_left hk₂)
+      Nat.add_le_add (Nat.le_mul_of_pos_left _ hk₁) (Nat.le_mul_of_pos_left _ hk₂)
     _ = k₁ * I.a₁ + k₂ * I.a₂ + (k₁ * I.b₁ + k₂ * I.b₂) := by ring
     _ = a + b                                           := by rw [h₁, h₂]
   done

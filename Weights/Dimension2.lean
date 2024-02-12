@@ -194,7 +194,7 @@ lemma add_le_of_mem_S_le {d a b : ℕ} (hd : (d : ZMod 3) ≠ 0) (hcop : Nat.Cop
     have : (a + b : ℤ) * 2 ≤ d := by
       exact_mod_cast mul_comm 2 _ ▸ (Nat.mul_le_mul_right (a + b) hm).trans hx
     exact Nat.le_div_two_iff_mul_two_le.mpr this
-  · exact Or.inl ⟨had, (Nat.le_mul_of_pos_left hm₀).trans hx⟩
+  · exact Or.inl ⟨had, (Nat.le_mul_of_pos_left _ hm₀).trans hx⟩
 
 /-- If `d = 3*δ` is divisble by `3` and `a/b ∈ S_≥` in lowest terms, then `a ≤ δ` and `b ≤ δ`. -/
 lemma le_delta_of_mem_S_ge {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSge : mem_S_ge (3 * δ) a b) :
@@ -249,8 +249,8 @@ lemma le_of_mem_S_ge {d a b : ℕ} (hd : (d : ZMod 3) ≠ 0) (hcop : Nat.Coprime
   have hm₀ : 0 < m :=
     (Nat.eq_zero_or_pos m).resolve_left (by rintro rfl; linarith only [Hx₁', hm₁])
   rcases eq_or_eq_neg_in_zmod_3 hd hcop hab with had | had -- `a = d ∨ a = -d` in `ℤ/3ℤ`
-  · exact Or.inl ⟨had, (Nat.le_mul_of_pos_left hm₀).trans hx₁,
-                       (Nat.le_mul_of_pos_left hm₀).trans hx₂⟩
+  · exact Or.inl ⟨had, (Nat.le_mul_of_pos_left _ hm₀).trans hx₁,
+                       (Nat.le_mul_of_pos_left _ hm₀).trans hx₂⟩
   · have hm : 2 ≤ m
     · by_contra! H
       obtain rfl : m = 1 := by linarith
@@ -555,7 +555,7 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
           d = 2 * d - d                 := by rw [Nat.two_mul, Nat.add_sub_cancel]
           _ ≤ 2 * d - 2 * (I.a₁ + I.b₁) := Nat.sub_le_sub_left H₄ _
           _ < 2 * (I.a₂ + I.b₂)         :=
-                Nat.sub_lt_left_of_lt_add (H₄.trans <| Nat.le_mul_of_pos_left (zero_lt_two))
+                Nat.sub_lt_left_of_lt_add (H₄.trans <| Nat.le_mul_of_pos_left _ (zero_lt_two))
                                           (by linarith)
         done
       linarith

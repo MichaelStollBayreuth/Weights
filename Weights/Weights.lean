@@ -151,7 +151,7 @@ lemma pair_add_left (w w' a : Weight n d) : (w + w').pair a = w.pair a + w'.pair
 
 @[simp] lemma pair_smul_left (w a : Weight n d) (k : ℕ) : (k • w).pair a = k * w.pair a := by
   simp_rw [pair, smul_apply, mul_left_comm]
-  exact Finset.mul_sum.symm
+  exact (Finset.mul_sum Finset.univ (fun i ↦ a i * w i) k).symm
 
 open Finset in
 /-- If `w` and `a` are both increasing or both decreasing on `{i, j}`,
@@ -159,7 +159,7 @@ then swapping `a i` and `a j` decreases `pair w a`. -/
 lemma pair_swap_le {w a : Weight n d} {i j : Fin n.succ} (hw : w i ≤ w j) (ha : a i ≤ a j) :
     w.pair (a.comp $ Equiv.swap i j) ≤ w.pair a := by
   cases' eq_or_ne i j with h h
-  · simp only [Weight.comp, h, Equiv.swap_self, Equiv.coe_refl, Function.comp.right_id, le_refl]
+  · simp only [Weight.comp, h, Equiv.swap_self, Equiv.coe_refl, Function.comp_id, le_refl]
   · have haij {k} (hk : k ∈ (univ.erase j).erase i) : (a.comp (Equiv.swap i j)) k = a k
     · rw [comp_apply,
           Equiv.swap_apply_of_ne_of_ne (ne_of_mem_erase hk)
@@ -312,7 +312,7 @@ lemma f_le_mul (w : Weight n d) (k : ℕ) : w.f ≤ (k.succ • w).f := by
       exact Nat.zero_le _
     · rw [← tsub_add_eq_add_tsub hle, ← tsub_add_eq_add_tsub (mul_le_mul' le_rfl hle),
           ← Nat.mul_sub_left_distrib]
-      exact add_le_add_right (Nat.le_mul_of_pos_left (Nat.succ_pos k)) 1
+      exact add_le_add_right (Nat.le_mul_of_pos_left _ (Nat.succ_pos k)) 1
   refine H.trans <| Nat.sub_le_sub_right (add_le_add_right ?_ _) _
   rw [mul_assoc]
   exact Nat.mul_div_le_mul_div_assoc ..
@@ -410,7 +410,7 @@ lemma dom_perm (w w' : Weight n d) (σ : Equiv.Perm (Fin n.succ)) :
   simp [E_perm, pair_perm']
   refine ⟨fun h a ha ↦ ?_, fun h a ha ↦ h (a.comp σ⁻¹) (testvecs_perm ha σ⁻¹)⟩
   specialize h (a.comp σ) (testvecs_perm ha σ)
-  rwa [comp_comp, mul_right_inv, Weight.comp, Equiv.Perm.coe_one, Function.comp.right_id] at h
+  rwa [comp_comp, mul_right_inv, Weight.comp, Equiv.Perm.coe_one, Function.comp_id] at h
 
 /-- If `w` dominates `w'` and both have `0` as their first entry, then `E w ≤ E w'`. -/
 lemma E_dom_mono {w w' : Weight n d} (hw : w 0 = 0) (hw' : w' 0 = 0) (h : w ≤d w') :
