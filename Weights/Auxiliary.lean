@@ -16,9 +16,9 @@ lemma proportional_of_mul_eq_mul_of_coprime {a b c d : ℕ} (h : a * d = b * c) 
   obtain ⟨d₁, rfl⟩ := (Coprime.dvd_mul_left h'.symm).mp <| Dvd.intro _ h.symm
   cases' eq_or_ne (a * b) 0 with H H
   · rcases mul_eq_zero.mp H with rfl | rfl
-    · obtain rfl : b = 1 := h'
+    · obtain rfl : b = 1 := (coprime_zero_left b).mp h'
       exact ⟨d₁, by simp⟩
-    · obtain rfl : a = 1 := h'.symm
+    · obtain rfl : a = 1 := (coprime_zero_right a).mp h'
       exact ⟨c₁, by simp⟩
   · rw [← mul_assoc, ← mul_assoc, mul_comm b] at h
     obtain rfl := mul_left_cancel₀ H h

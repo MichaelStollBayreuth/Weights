@@ -19,7 +19,6 @@ lemma pair'_of_fraction (d a b : ℕ) (z : Fin (Nat.succ 2) → ℤ) :
   simp only [pair', of_fraction, Fin.sum_univ_three, cons_val_zero, cons_val_one, head_cons,
     cons_val_two, tail_cons, Nat.cast_add]
   ring
-  done
 
 lemma pair'_of_fraction_add (d a₁ b₁ a₂ b₂ : ℕ) :
     pair' (of_fraction d (a₁ + a₂) (b₁ + b₂)) =
@@ -27,13 +26,11 @@ lemma pair'_of_fraction_add (d a₁ b₁ a₂ b₂ : ℕ) :
   ext z
   simp_rw [Pi.add_apply, pair'_of_fraction, Nat.cast_add]
   ring
-  done
 
 lemma pair'_of_fraction_mul (d a b k : ℕ) (z : Fin 3 → ℤ) :
     pair' (of_fraction d (k * a) (k * b)) z = k * pair' (of_fraction d a b) z := by
   simp_rw [pair'_of_fraction, Nat.cast_mul]
   ring
-  done
 
 /-- Every normalized weight vector for dimension 2 is of the form `of_fraction a b`. -/
 lemma ex_of_fraction {d : ℕ} [NeZero d] {w : Weight 2 d} (h : w.normalized) :
@@ -43,20 +40,17 @@ lemma ex_of_fraction {d : ℕ} [NeZero d] {w : Weight 2 d} (h : w.normalized) :
   · simp [of_fraction, h.1]
   · simp [of_fraction]
   · exact Nat.eq_add_of_sub_eq (h.2 (Fin.coe_sub_iff_le.mp rfl)) rfl
-  done
 
 /-- Every vector of the form `of_fraction d a b` is normalized. -/
 lemma normalized_of_of_fraction (d a b : ℕ) [NeZero d] : (of_fraction d a b).normalized := by
   refine ⟨?_, ?_⟩
   · simp [of_fraction]
-  · have help : ∀ i j : Fin 3, i ≤ j → i = 0 ∨ (i = j) ∨ (i = 1 ∧ j = 2)
-    · decide
+  · have help : ∀ i j : Fin 3, i ≤ j → i = 0 ∨ (i = j) ∨ (i = 1 ∧ j = 2) := by decide
     intro i j hij
     rcases help i j hij with rfl | rfl | ⟨rfl, rfl⟩
     · simp [of_fraction]
     · exact le_rfl
     · simp [of_fraction]
-  done
 
 /-- The entries of `of_fraction d a b` are bounded by `a+b`. -/
 lemma of_fraction_le (d : ℕ) [NeZero d] (a b : ℕ) (i : Fin 3) : of_fraction d a b i ≤ a + b :=
@@ -124,8 +118,8 @@ lemma eq_or_eq_neg_in_zmod_3 {d a b : ℕ} (hd : (d : ZMod 3) ≠ 0) (hcop : Nat
   have hdd := not_eq_neg_self hd
   by_contra! H
   have help : ∀ {a d : ZMod 3}, -d ≠ d → (a ≠ d ∧ a ≠ -d) → a = 0 := by decide
-  have ha₀ := (ZMod.nat_cast_zmod_eq_zero_iff_dvd a 3).mp <| help hdd H
-  have hb₀ := (ZMod.nat_cast_zmod_eq_zero_iff_dvd b 3).mp <| (help hdd H ▸ hab).symm
+  have ha₀ := (ZMod.natCast_zmod_eq_zero_iff_dvd a 3).mp <| help hdd H
+  have hb₀ := (ZMod.natCast_zmod_eq_zero_iff_dvd b 3).mp <| (help hdd H ▸ hab).symm
   exact Nat.Prime.not_coprime_iff_dvd.mpr ⟨3, Nat.prime_three, ha₀, hb₀⟩ hcop
 
 /-!
@@ -149,8 +143,8 @@ lemma add_le_delta_of_mem_S_le {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSle : m
       (by rw [Hx₁]; ring : (b : ℤ) * (2 * (3 * δ) - 3 * i₁ - 3 * i₂) = 3 * (b * x₁))] at hSle
   replace hSle := mul_left_cancel₀ (by norm_num) hSle
   norm_cast at hSle -- `a * x₂ = b * x₁`
-  have ha : a ≤ x₁
-  · cases' eq_or_ne x₁ 0 with H H
+  have ha : a ≤ x₁ := by
+    cases' eq_or_ne x₁ 0 with H H
     · simp only [H, mul_zero, mul_eq_zero] at hSle
       -- `hSle : a = 0 ∨ x₂ = 0`
       rcases hSle with rfl | rfl
@@ -161,7 +155,6 @@ lemma add_le_delta_of_mem_S_le {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSle : m
   have hb : b ≤ x₂ :=
     Nat.le_of_dvd Hx₂' <| hcop.symm.dvd_of_dvd_mul_left <| Dvd.intro (Int.toNat x₁) hSle.symm
   linarith
-  done
 
 /-- If `d` is not divisible by `3` and `a/b ∈ S_≤` in lowest terms,
 then either `a ≡ b ≡ -d mod 3` and `a + b ≤ d` or `a ≡ b ≡ d mod 3` and `a + b ≤ d/2`. -/
@@ -214,8 +207,8 @@ lemma le_delta_of_mem_S_ge {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSge : mem_S
   replace hSge := mul_left_cancel₀ (by norm_num) hSge
   norm_cast at hSge
   have ha : a ≤ x₁ := Nat.le_of_dvd Hx₁' <| hcop.dvd_of_dvd_mul_left <| Dvd.intro x₂ hSge
-  have hb : b ≤ x₂
-  · cases' eq_or_ne x₂ 0 with H H
+  have hb : b ≤ x₂ := by
+    cases' eq_or_ne x₂ 0 with H H
     · simp only [H, mul_zero, zero_eq_mul] at hSge
       -- `hSge : b = 0 ∨ x₁ = 0`
       rcases hSge with rfl | rfl
@@ -251,8 +244,8 @@ lemma le_of_mem_S_ge {d a b : ℕ} (hd : (d : ZMod 3) ≠ 0) (hcop : Nat.Coprime
   rcases eq_or_eq_neg_in_zmod_3 hd hcop hab with had | had -- `a = d ∨ a = -d` in `ℤ/3ℤ`
   · exact Or.inl ⟨had, (Nat.le_mul_of_pos_left _ hm₀).trans hx₁,
                        (Nat.le_mul_of_pos_left _ hm₀).trans hx₂⟩
-  · have hm : 2 ≤ m
-    · by_contra! H
+  · have hm : 2 ≤ m := by
+      by_contra! H
       obtain rfl : m = 1 := by linarith
       have hx₁' : (x₁ : ZMod 3) = d := by reduce_mod_3 Hx₁
       rw [hm₁, one_mul, had] at hx₁'
@@ -275,8 +268,8 @@ lemma dom_of_mem_interior_left (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterv
   obtain ⟨k₁, k₂, hk₁, hk₂, h₁, h₂⟩ := exists_of_mem_interior hm
   apply dom_of_pair_le
   intro i hi -- `hi : ⟨vᵢ, w₋⟩ ≥ 0`
-  have hi' : 0 ≤ pair' (of_fraction d I.a₂ I.b₂) (v i) -- `⟨vᵢ, w₊⟩ ≥ 0`
-  · simp only [v, Nat.cast_ofNat, pair'_of_fraction] at hi ⊢
+  have hi' : 0 ≤ pair' (of_fraction d I.a₂ I.b₂) (v i) := by -- `⟨vᵢ, w₊⟩ ≥ 0`
+    simp only [v, Nat.cast_ofNat, pair'_of_fraction] at hi ⊢
     norm_num at hi ⊢
     set bi : ℤ := d - 3 * (i.val 2) with hbi_def
     set ai : ℤ := d - 3 * (i.val 1) + (d - 3 * (i.val 2)) with hai_def
@@ -289,15 +282,13 @@ lemma dom_of_mem_interior_left (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterv
         _ = I.a₂ * I.b₁ * bi + I.b₁ * I.b₂ * ai - bi := by norm_cast; rw [I.rel]; push_cast; ring
         _ = (I.a₂ * bi + I.b₂ * ai) * I.b₁ - bi      := by ring
         _ ≤ _                                        := Int.sub_le_self _ hbi
-      done
-    · have hai : 0 ≤ ai
-      · by_contra hai
+    · have hai : 0 ≤ ai := by
+        by_contra hai
         have H₁ : I.a₁ * bi ≤ 0 :=
           Int.mul_nonpos_of_nonneg_of_nonpos (Int.ofNat_nonneg I.a₁) hbi.le
         have H₂ : I.b₁ * ai < 0 :=
           Int.mul_neg_of_pos_of_neg (Int.ofNat_pos.mpr I.b₁_pos) (Int.not_le.mp hai)
         linarith only [hi, H₁, H₂]
-        done
       have memS : mem_S_le d ai (-bi) :=
         ⟨Int.neg_pos_of_neg hbi, i.val 1, i.val 2, by linarith, by linarith, by ring⟩
       obtain ⟨aa, haa⟩ : ∃ x : ℕ, (x : ℤ) = ai := ⟨ai.toNat, Int.toNat_of_nonneg hai⟩
@@ -317,7 +308,6 @@ lemma dom_of_mem_interior_left (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterv
     _ = _ := by
         rw [h₁, h₂, pair'_of_fraction_add, Pi.add_apply, pair'_of_fraction_mul,
             pair'_of_fraction_mul]
-  done
 
 /-- If `I = [a₁/b₁, a₂/b₂]` is a basic interval such that `I ∩ S_≥ ⊆ {a₁/b₁}`,
 then the weight vector associated to any fraction in the interior of `I` is dominated
@@ -329,8 +319,8 @@ lemma dom_of_mem_interior_right (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInter
   obtain ⟨k₁, k₂, hk₁, hk₂, h₁, h₂⟩ := exists_of_mem_interior hm
   apply dom_of_pair_le
   intro i hi -- `hi : ⟨vᵢ, w₊⟩ ≥ 0`
-  have hi' : 0 ≤ pair' (of_fraction d I.a₁ I.b₁) (v i) -- `⟨vᵢ, w₋⟩ ≥ 0`
-  · simp only [v, Nat.cast_ofNat, pair'_of_fraction] at hi ⊢
+  have hi' : 0 ≤ pair' (of_fraction d I.a₁ I.b₁) (v i) := by -- `⟨vᵢ, w₋⟩ ≥ 0`
+    simp only [v, Nat.cast_ofNat, pair'_of_fraction] at hi ⊢
     norm_num at hi ⊢
     set bi : ℤ := d - 3 * (i.val 2) with hbi_def
     set ai : ℤ := d - 3 * (i.val 1) + (d - 3 * (i.val 2)) with hai_def
@@ -343,22 +333,18 @@ lemma dom_of_mem_interior_right (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInter
         _ = I.a₁ * I.a₂ * bi + I.a₂ * I.b₁ * ai - ai := by norm_cast; rw [I.rel]; push_cast; ring
         _ = (I.a₁ * bi + I.b₁ * ai) * I.a₂ - ai      := by ring
         _ ≤ _                                        := Int.sub_le_self _ hai
-      done
-    · have hbi : 0 ≤ bi
-      · by_contra hbi
+    · have hbi : 0 ≤ bi := by
+        by_contra hbi
         have H₁ : I.b₂ * ai ≤ 0 :=
           Int.mul_nonpos_of_nonneg_of_nonpos (Int.ofNat_nonneg I.b₂) hai.le
         have H₂ : I.a₂ * bi < 0 :=
           Int.mul_neg_of_pos_of_neg (Int.ofNat_pos.mpr I.a₂_pos) (Int.not_le.mp hbi)
         linarith only [hi, H₁, H₂]
-        done
-      have memS : mem_S_ge d (-ai) bi
-      · refine ⟨Int.neg_pos_of_neg hai, i.val 1, i.val 2, ?_, by linarith, by linarith, by ring⟩
-        have HH : i.val.sum = i.val 0 + (i.val 1 + i.val 2)
-        · rw [Weight.sum, Fin.sum_univ_three, add_assoc]
-          done
+      have memS : mem_S_ge d (-ai) bi := by
+        refine ⟨Int.neg_pos_of_neg hai, i.val 1, i.val 2, ?_, by linarith, by linarith, by ring⟩
+        have HH : i.val.sum = i.val 0 + (i.val 1 + i.val 2) := by
+          rw [Weight.sum, Fin.sum_univ_three, add_assoc]
         linarith only [i.prop ▸ HH]
-        done
       obtain ⟨aa, haa⟩ : ∃ x : ℕ, (x : ℤ) = -ai :=
         ⟨(-ai).toNat, Int.toNat_of_nonneg (Int.neg_nonneg_of_nonpos hai.le)⟩
       obtain ⟨bb, hbb⟩ : ∃ x : ℕ, (x : ℤ) = bi := ⟨bi.toNat, Int.toNat_of_nonneg hbi⟩
@@ -376,7 +362,6 @@ lemma dom_of_mem_interior_right (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInter
     _ = _ := by
         rw [h₁, h₂, pair'_of_fraction_add, Pi.add_apply, pair'_of_fraction_mul,
             pair'_of_fraction_mul]
-  done
 
 lemma dom_of_proportional (d : ℕ) [NeZero d] {a b a' b' : ℕ} (hab : a ≠ 0 ∨ b ≠ 0)
     (hc : a'.Coprime b') (h : a' * b = b' * a) :
@@ -401,16 +386,14 @@ lemma dom_of_mem (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterval} (hab : a �
          ∀ (a' b' : ℕ), mem_S_ge d a' b' → mem a' b' I → a' * I.b₁ = b' * I.a₁) :
     of_fraction d I.a₁ I.b₁ ≤d of_fraction d a b ∨
       of_fraction d I.a₂ I.b₂ ≤d of_fraction d a b := by
-  have help {a b c d : ℕ} (hyp : a * b = c * d) : d * c = b * a
-  · rw [mul_comm b, mul_comm d, hyp]
-    done
+  have help {a b c d : ℕ} (hyp : a * b = c * d) : d * c = b * a := by
+    rw [mul_comm b, mul_comm d, hyp]
   rcases eq_or_eq_or_mem_interior_of_mem hm with H | H | H
   · exact Or.inl <| dom_of_proportional d hab I.coprime₁ <| help H
   · exact Or.inr <| dom_of_proportional d hab I.coprime₂ <| help H
   · rcases h with h | h
     · exact Or.inl <| dom_of_mem_interior_left d H h
     · exact Or.inr <| dom_of_mem_interior_right d H h
-  done
 
 /-!
 ### Proof of Theorem 1.6
@@ -424,7 +407,6 @@ lemma condition_iff_weaker_le (d : ℕ) [NeZero d] (I : BasicInterval) :
   cases' Nat.eq_zero_or_pos (Nat.gcd a b) with h₀ h₀
   · obtain ⟨rfl, rfl⟩ := Nat.gcd_eq_zero_iff.mp h₀
     simp only [zero_mul]
-    done
   obtain ⟨g, a', b', hg₁, hcop, rfl, rfl⟩ := Nat.exists_coprime' h₀; clear h₀
   simp_rw [mul_comm _ g, mul_assoc]
   exact congrArg (g * ·)
@@ -437,7 +419,6 @@ lemma condition_iff_weaker_ge (d : ℕ) [NeZero d] (I : BasicInterval) :
   cases' Nat.eq_zero_or_pos (Nat.gcd a b) with h₀ h₀
   · obtain ⟨rfl, rfl⟩ := Nat.gcd_eq_zero_iff.mp h₀
     simp only [zero_mul]
-    done
   obtain ⟨g, a', b', hg₁, hcop, rfl, rfl⟩ := Nat.exists_coprime' h₀; clear h₀
   simp_rw [mul_comm _ g, mul_assoc]
   exact congrArg (g * ·)
@@ -451,7 +432,6 @@ lemma eq_left_of_add_le {d a b : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
   · exact left
   · contradiction
   · linarith only [gt_of_mem_interior_feasible hI interior, hbd]
-  done
 
 lemma eq_right_of_add_le {d a b : ℕ} [NeZero d] {I : BasicInterval} (hI : I.feasible d)
     (hcop : Nat.Coprime a b) (hmem : mem a b I) (hbd : a + b ≤ d) (hne : a * I.b₁ ≠ b * I.a₁) :
@@ -461,7 +441,6 @@ lemma eq_right_of_add_le {d a b : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fe
   · contradiction
   · exact right
   · linarith only [gt_of_mem_interior_feasible hI interior, hbd]
-  done
 
 /-- A feasible basic interval `I = [a₁/b₁, a₂/b₂]` satisfies the condition
 `I ∩ S_≤ ⊆ {a₂/b₂}` or `I ∩ S_≥ ⊆ {a₁/b₁}`. -/
@@ -473,7 +452,7 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
   obtain ⟨⟨s₁, t₁, hcop₁, hSle, hmem₁, hne₁⟩, ⟨s₂, t₂, hcop₂, hSge, hmem₂, hne₂⟩⟩ := H
   cases' eq_or_ne (d : ZMod 3) 0 with hd hd
   · -- case `d` is divisble by 3
-    obtain ⟨δ, rfl⟩ := (ZMod.nat_cast_zmod_eq_zero_iff_dvd d 3).mp hd
+    obtain ⟨δ, rfl⟩ := (ZMod.natCast_zmod_eq_zero_iff_dvd d 3).mp hd
     -- `s₁/t₁` must be left endpoint
     have hs₁t₁ := add_le_delta_of_mem_S_le hcop₁ hSle
     obtain ⟨hs₁a₁, ht₁b₁⟩ := eq_left_of_add_le hI hcop₁ hmem₁ (by linarith) hne₁
@@ -488,7 +467,6 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
       _     = (s₁ + t₁) + (s₂ + t₂)         := by symm; congr
       _     ≤ δ + (δ + δ)                   := by gcongr
       _     = _                             := by ring
-    done
   -- Now deal with the case that `d` is not divisible by 3
   obtain ⟨hs₁t₁mod3, hyp₁⟩ := add_le_of_mem_S_le hd hcop₁ hSle
   -- `s₁/t₁` must be left endpoint
@@ -500,37 +478,34 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
   -- write `(s₂, t₂) = k₁•(I.a₁, I,b₁) + k₂•(I.a₂, I,b₂)`
   obtain ⟨k₁, k₂, hks₂, hkt₂⟩ := exists_of_mem hmem₂
   -- A bound for `s₂ + t₂`
-  have hbd : s₂ + t₂ ≤ 2 * d
-  · rcases hyp₂ with ⟨_, H₁, H₂⟩ | ⟨_, H₁, H₂⟩
+  have hbd : s₂ + t₂ ≤ 2 * d := by
+    rcases hyp₂ with ⟨_, H₁, H₂⟩ | ⟨_, H₁, H₂⟩
     · linarith only [H₁, H₂]
     · replace H₁ := H₁.trans <| Nat.div_le_self d 2
       replace H₂ := H₂.trans <| Nat.div_le_self d 2
       linarith only [H₁, H₂]
-    done
-  have hk₂' : 3 ∣ k₂
-  · rw [← ZMod.nat_cast_zmod_eq_zero_iff_dvd]
-    have : k₂ + t₂ * s₁ = s₂ * t₁
-    · rw [hks₂, hkt₂, hs₁a₁, ht₁b₁, add_mul _ _ I.b₁, mul_assoc _ I.a₂, I.rel]
+  have hk₂' : 3 ∣ k₂ := by
+    rw [← ZMod.natCast_zmod_eq_zero_iff_dvd]
+    have : k₂ + t₂ * s₁ = s₂ * t₁ := by
+      rw [hks₂, hkt₂, hs₁a₁, ht₁b₁, add_mul _ _ I.b₁, mul_assoc _ I.a₂, I.rel]
       ring
-      done
     reduce_mod_3 this
     simpa only [hs₁t₁mod3, hs₂t₂mod3, add_left_eq_self] using this
-  have hk₂ : 3 ≤ k₂
-  · refine Nat.le_of_dvd ((Nat.eq_zero_or_pos _).resolve_left ?_) hk₂'
+  have hk₂ : 3 ≤ k₂ := by
+    refine Nat.le_of_dvd ((Nat.eq_zero_or_pos _).resolve_left ?_) hk₂'
     rintro rfl
     rw [hks₂, hkt₂, zero_mul, add_zero, zero_mul, add_zero, Nat.mul_right_comm] at hne₂
     exact hne₂ rfl
-  have hk₁ : 1 ≤ k₁
-  · refine (Nat.eq_zero_or_pos k₁).resolve_left ?_
+  have hk₁ : 1 ≤ k₁ := by
+    refine (Nat.eq_zero_or_pos k₁).resolve_left ?_
     rintro rfl
     simp only [zero_mul, zero_add] at hks₂ hkt₂
     rw [hks₂, hkt₂] at hcop₂
     linarith only [Nat.eq_one_of_coprime_mul_mul hcop₂, hk₂]
-    done
   have : k₁ = 1 ∨ 2 ≤ k₁ := by rwa [eq_comm, Nat.succ_le, ← le_iff_eq_or_lt]
   have hI₂ := hI.2.2
-  have hbd' : 2 * d < s₂ + t₂
-  · rcases this with rfl | hk₁
+  have hbd' : 2 * d < s₂ + t₂ := by
+    rcases this with rfl | hk₁
     · -- case `k₁ = 1` (there more involved one)
       have hs₂bd : 1 * I.a₁ + 3 * I.a₂ ≤ s₂ := by rw [hks₂]; gcongr
       have ht₂bd : 1 * I.b₁ + 3 * I.b₂ ≤ t₂ := by rw [hkt₂]; gcongr
@@ -539,32 +514,22 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
       have Hd : d / 2 + d / 2 ≤ d := by rw [← two_mul]; exact Nat.mul_div_le d 2
       have H₂ : (s₂ : ZMod 3) = d :=
         (hyp₂.resolve_right (fun _ ↦ False.elim <| lt_irrefl d <| H₁.trans_le (by linarith))).1
-      have H₃ : (s₁ : ZMod 3) = d
-      · have : (k₂ : ZMod 3) = 0 := (ZMod.nat_cast_zmod_eq_zero_iff_dvd k₂ 3).mpr hk₂'
+      have H₃ : (s₁ : ZMod 3) = d := by
+        have : (k₂ : ZMod 3) = 0 := (ZMod.natCast_zmod_eq_zero_iff_dvd k₂ 3).mpr hk₂'
         reduce_mod_3 hks₂
         simpa only [H₂, ← hs₁a₁, one_mul, this, zero_mul, add_zero] using hks₂.symm
-      have H₄ : 2 * (I.a₁ + I.b₁) ≤ d
-      · rw [← hs₁a₁, ← ht₁b₁]
+      have H₄ : 2 * (I.a₁ + I.b₁) ≤ d := by
+        rw [← hs₁a₁, ← ht₁b₁]
         rcases hyp₁ with ⟨hmod, _⟩ | ⟨_, hle⟩
         · have hch : ringChar (ZMod 3) ≠ 2 := by rw [ZMod.ringChar_zmod_n]; norm_num
           exact False.elim <| hd <|
                   (Ring.eq_self_iff_eq_zero_of_char_ne_two hch).mp (H₃ ▸ hmod).symm
         · exact (Nat.mul_le_mul_left 2 hle).trans <| Nat.mul_div_le d 2
-      have : d < 2 * (I.a₂ + I.b₂)
-      · calc
-          d = 2 * d - d                 := by rw [Nat.two_mul, Nat.add_sub_cancel]
-          _ ≤ 2 * d - 2 * (I.a₁ + I.b₁) := Nat.sub_le_sub_left H₄ _
-          _ < 2 * (I.a₂ + I.b₂)         :=
-                Nat.sub_lt_left_of_lt_add (H₄.trans <| Nat.le_mul_of_pos_left _ (zero_lt_two))
-                                          (by linarith)
-        done
       linarith
-      done
     · -- case `k₁ ≥ 2`
       have hs₂bd : 2 * I.a₁ + 3 * I.a₂ ≤ s₂ := by rw [hks₂]; gcongr
       have ht₂bd : 2 * I.b₁ + 3 * I.b₂ ≤ t₂ := by rw [hkt₂]; gcongr
       linarith
-      done
   exact lt_irrefl _ <| hbd'.trans_le hbd
 
 /-- Every weight vector `[0, b, a+b]` is dominated by a weight vector `[0, t, s+t]`

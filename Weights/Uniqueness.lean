@@ -32,7 +32,6 @@ lemma trunc_lec (w : Weight n d) : w.trunc ≤c w := by
 
 lemma trunc_le_E (w : Weight n d) (j : Fin n.succ) : w.trunc j ≤ w.E := by
   simp only [trunc, min_le_iff, le_refl, or_true]
-  done
 
 lemma trunc_zero {w : Weight n d} (h : w 0 = 0) : w.trunc 0 = 0 := by
   simp only [trunc_apply, Nat.min_eq_zero_iff] at h ⊢
@@ -150,15 +149,14 @@ lemma exists_balanced_ltc (w : Weight n d) (hb : ¬ w.balanced)
   simp only [balanced] at hb
   push_neg at hb
   obtain ⟨j, hj⟩ := hb
-  have hsum' : w'.sum = w.trunc.sum + 1
-  · simp only [Weight.sum, ne_eq, Function.update_apply, trunc_apply, ge_iff_le, Finset.sum_ite,
-      Finset.mem_univ, forall_true_left, Finset.filter_eq', ite_true, Finset.sum_const,
-      Finset.card_singleton, smul_eq_mul, mul_one, forall_eq, Finset.filter_ne', not_true]
+  have hsum' : w'.sum = w.trunc.sum + 1 := by
+    simp only [Weight.sum, Function.update_apply, trunc_apply, Finset.sum_ite, Finset.filter_eq',
+      Finset.mem_univ, ite_true, Finset.sum_const, Finset.card_singleton, smul_eq_mul, mul_one,
+      Finset.filter_ne', w']
     rw [← Finset.sum_erase_add _ _ (Finset.mem_univ k), add_comm, add_left_inj, hk]
-    simp only [Finset.mem_univ, not_true, ge_iff_le, zero_le, min_eq_left, add_zero]
-    done
-  have hE' : w'.E = w.trunc.E
-  · rw [E, hsum', hE]
+    simp only [zero_le, min_eq_left, add_zero]
+  have hE' : w'.E = w.trunc.E := by
+    rw [E, hsum', hE]
     refine le_antisymm ?_ (le_of_eq_of_le hE.symm ?_) <;> rw [E, add_le_add_iff_right]
     · have hsum : w.trunc.sum < w.sum :=
         Finset.sum_lt_sum (fun j _ ↦ (lec_iff _ _).mp (trunc_lec w) j)
@@ -167,15 +165,14 @@ lemma exists_balanced_ltc (w : Weight n d) (hb : ¬ w.balanced)
     · exact Nat.div_le_div_right (Nat.mul_le_mul_right _ (Nat.le_succ _))
   refine ⟨hE', fun j ↦ ?_, (lec_iff _ _).mpr (fun j ↦ ?_), fun hf ↦ ?_⟩
   · -- show `balanced w'`
-    simp only [ne_eq, Function.update_apply, trunc_apply, ge_iff_le, hE']
+    simp only [Function.update_apply, trunc_apply, hE', w']
     split_ifs
     · exact one_le_E _
     · exact trunc_balanced hE _
   · -- show `w.trunc ≤c w'`
-    simp only [Function.update_apply]
+    simp only [w', Function.update_apply]
     by_cases hjk : j = k <;>
-      simp only [hjk, (Nat.eq_zero_of_le_zero (le_of_le_of_eq (trunc_lec w k) hk)),
-        zero_le', if_false]
+      simp only [hjk, (Nat.eq_zero_of_le_zero (le_of_le_of_eq (trunc_lec w k) hk)), zero_le']
     · exact Nat.le_refl (trunc w j)
   · -- show `w.trunc ≠ w'`.
     rw [hf, self_eq_add_right] at hsum'
@@ -186,10 +183,11 @@ this entry by `1` still gives a monotone weight. -/
 lemma index_exists {w : Weight n d} (hw : w.normalized) :
     ∃ k, w k = 0 ∧ Monotone (Function.update w k 1) := by
   let P : ℕ → Prop := (fun i ↦ if hi : i < n.succ then w ⟨i, hi⟩ = 0 else False)
-  have hP : ∀ m (hm : m < n.succ), P m ↔ w ⟨m, hm⟩ = 0 := fun  m hm ↦ by simp only [hm, dif_pos]
+  have hP : ∀ m (hm : m < n.succ), P m ↔ w ⟨m, hm⟩ = 0 :=
+    fun  m hm ↦ by simp only [hm, dif_pos, P]
   let m : Fin n.succ := ⟨Nat.findGreatest P n, Nat.lt_succ_of_le (Nat.findGreatest_le n)⟩
-  have hm : w m = 0
-  · have h₀ : P 0 := by rw [hP 0 (Nat.zero_lt_succ n)]; exact hw.1
+  have hm : w m = 0 := by
+    have h₀ : P 0 := by rw [hP 0 (Nat.zero_lt_succ n)]; exact hw.1
     rw [← hP]
     exact Nat.findGreatest_spec (Nat.zero_le n) h₀
   refine ⟨m, hm, fun i j hij ↦ ?_⟩
@@ -197,7 +195,7 @@ lemma index_exists {w : Weight n d} (hw : w.normalized) :
   by_cases hi : i = m <;> by_cases hj : j = m <;> simp [hi, hj]
   · have hij' : m < j := hi.symm ▸ lt_of_le_of_ne hij (hi.symm ▸ Ne.symm hj)
     have := Nat.findGreatest_is_greatest hij' (Nat.le_of_lt_succ j.2)
-    simp only [Fin.is_lt, Fin.eta, dite_eq_ite, ite_true, ← Ne.def] at this
+    simp only [Nat.succ_eq_add_one, Fin.is_lt, ↓reduceDIte, Fin.eta, P] at this
     exact Nat.one_le_iff_ne_zero.mpr this
   · exact (le_of_le_of_eq (hw.2 (le_of_le_of_eq hij hj)) hm).trans zero_le_one
   · exact hw.2 hij
@@ -277,12 +275,11 @@ lemma dom_of_dom_perm {w w' : Weight n d} (hw : Monotone w) (hd : w ≤d w') : w
   let g' := g.comp (Equiv.swap i j)
   change w ≤d g'
   simp only [dom_iff, f_le_iff, f_apply, SetCoe.forall, Subtype.coe_mk] at hwg ⊢
-  have hgg' : g'.comp (Equiv.swap i j) = g
-  · ext
-    simp only [Weight.comp, Function.comp_apply, Equiv.swap_apply_self]
-    done
-  have hgs : g' i ≤ g' j
-  · simp only [Weight.comp, Function.comp_apply, Equiv.swap_apply_left, Equiv.swap_apply_right]
+  have hgg' : g'.comp (Equiv.swap i j) = g := by
+    ext
+    simp only [Weight.comp, Function.comp_apply, Equiv.swap_apply_self, g']
+  have hgs : g' i ≤ g' j := by
+    simp only [Weight.comp, Function.comp_apply, Equiv.swap_apply_left, Equiv.swap_apply_right, g']
     exact le_of_lt hij₂
   intro a ha
   rw [E_perm g (Equiv.swap i j)]
@@ -294,12 +291,12 @@ lemma dom_of_dom_perm {w w' : Weight n d} (hw : Monotone w) (hd : w ≤d w') : w
     rw [add_le_add_iff_left]
     exact pair_swap_le (hw (le_of_lt hij₁)) ham
   · let a' := a.comp (Equiv.swap i j)
-    have haa' : a'.comp (Equiv.swap i j) = a
-    · ext
-      simp only [Weight.comp, Function.comp_apply, Equiv.swap_apply_self]
-      done
-    have ham' : a' i ≤ a' j
-    · simp only [Weight.comp, Function.comp_apply, Equiv.swap_apply_left, Equiv.swap_apply_right]
+    have haa' : a'.comp (Equiv.swap i j) = a := by
+      ext
+      simp only [Weight.comp, Function.comp_apply, Equiv.swap_apply_self, a']
+    have ham' : a' i ≤ a' j := by
+      simp only [Weight.comp, Function.comp_apply, Equiv.swap_apply_left, Equiv.swap_apply_right,
+        a']
       exact le_of_lt ham
     have hag : g'.pair a' = pair g a := by simp only [pair_swap_eq g' a, hgg']
     have := pair_swap_le (n := n) (d := d) hgs ham'
@@ -310,16 +307,16 @@ lemma dom_of_dom_perm' {w w' : Weight n d} (hw' : Monotone w') (hd : w ≤d w') 
     w.sorted ≤d w' := by
   convert dom_of_dom_perm (sorted_is_Monotone w) ((dom_perm w w' (Tuple.sort w)).mpr hd)
   rw [sorted, comp_comp]
-  have help : w' = w'.comp (Tuple.sort w') ↔ Monotone w'
-  · change w' ∘ Equiv.refl _ = _ ↔ Monotone (w' ∘ Equiv.refl _)
+  have help : w' = w'.comp (Tuple.sort w') ↔ Monotone w' := by
+    change w' ∘ Equiv.refl _ = _ ↔ Monotone (w' ∘ Equiv.refl _)
     exact Tuple.comp_sort_eq_comp_iff_monotone
   rw [help.mpr hw', comp_comp, eq_comm]
   apply Tuple.comp_sort_eq_comp_iff_monotone.mpr
   let w'' := (w'.comp (Tuple.sort w)).comp (Tuple.sort (w'.comp (Tuple.sort w)))
   have hw'' : Monotone w'' := sorted_is_Monotone _
   have h : w'' = w' ∘ ⇑(Tuple.sort w' * (Tuple.sort w *
-                    Tuple.sort ((w'.comp (Tuple.sort w')).comp (Tuple.sort w))))
-  · simp only [Weight.comp, Equiv.Perm.coe_mul]
+                    Tuple.sort ((w'.comp (Tuple.sort w')).comp (Tuple.sort w)))) := by
+    simp only [Weight.comp, Equiv.Perm.coe_mul]
     rw [← Function.comp.assoc w' (Tuple.sort w'), Tuple.sort_eq_refl_iff_monotone.mpr hw']
     simp only [Equiv.coe_refl, Function.comp_id]
     rfl
@@ -397,25 +394,23 @@ lemma gcd_eq_one_of_in_M {w : Weight n d} (h₀ : w ≠ 0) (hM : w ∈ M n d) :
     Finset.univ.gcd w = 1 := by
   set g := Finset.univ.gcd w
   by_contra hfg
-  have hg : 1 < g
-  · refine lt_of_le_of_ne (Nat.one_le_iff_ne_zero.mpr ?_) (Ne.symm hfg)
+  have hg : 1 < g := by
+    refine lt_of_le_of_ne (Nat.one_le_iff_ne_zero.mpr ?_) (Ne.symm hfg)
     by_contra! hg
     have h₀' : w = 0
     · ext
       simp only [Finset.mem_univ, Finset.gcd_eq_zero_iff.mp hg, zero_apply]
-      done
     exact h₀ h₀'
   let w' : Weight n d := fun i ↦ (w i) / g
-  have hww' : w = g • w'
-  · ext i
-    simp only [Pi.smul_apply, Algebra.id.smul_eq_mul]
+  have hww' : w = g • w' := by
+    ext i
+    simp only [w']
     exact (Nat.mul_div_cancel_left' (Finset.gcd_dvd (Finset.mem_univ i))).symm
   have hww'i i : w i = g * w' i := congrFun hww' i
   refine (not_in_M_of_dom_ne ⟨w', ⟨?_, ?_⟩, ?_, ?_⟩) hM
-  · simp only
+  · simp only [w']
     rw [hM.1.1, Nat.zero_div]
-    done
-  · simp only
+  · simp only [w']
     exact fun i j hij ↦ Nat.div_le_div_right (hM.1.2 hij)
   · rw [hww', dom_iff]
     have := f_le_mul w' g.pred

@@ -42,7 +42,7 @@ def a₂ (I : BasicInterval) : ℕ := I.data.2.1
 /-- The denominator of the right endpoint -/
 def b₂ (I : BasicInterval) : ℕ := I.data.2.2
 
-attribute [pp_dot] a₁ b₁ a₂ b₂
+-- attribute [pp_dot] a₁ b₁ a₂ b₂
 
 -- Boilerplate
 @[simp] lemma base_a₁ : base.a₁ = 0 := rfl
@@ -91,7 +91,6 @@ lemma coprime (I : BasicInterval) : Nat.Coprime (I.a₂ * I.b₁) (I.a₁ * I.b�
   intros c h₁ h₂
   rw [I.rel] at h₁
   exact Nat.dvd_one.mp <| (Nat.dvd_add_right h₂).mp h₁
-  done
 
 lemma coprime₁ (I : BasicInterval) : I.a₁.Coprime I.b₁ :=
   (Nat.Coprime.coprime_mul_right_right <| Nat.Coprime.coprime_mul_left I.coprime).symm
@@ -119,7 +118,6 @@ lemma eq_or_eq_or_mem_interior_of_mem {a b : ℕ} {I : BasicInterval} (h : mem a
   cases' h₂.eq_or_lt with H₂ H₂
   · exact Or.inr <| Or.inl H₂
   exact Or.inr <| Or.inr ⟨H₁, H₂⟩
-  done
 
 lemma mem_of_mem_interior {a b : ℕ} {I : BasicInterval} (h : mem_interior a b I) : mem a b I := by
   simp only [mem, mem_interior] at h ⊢
@@ -132,27 +130,21 @@ lemma mem_of_mem_left {a b : ℕ} (I : BasicInterval) (h : mem a b I.left) : mem
   obtain ⟨h₁, h₂⟩ := h
   simp at h₁ h₂
   exact ⟨h₁, by linarith⟩
-  done
 
 lemma mem_of_mem_right {a b : ℕ} (I : BasicInterval) (h : mem a b I.right) : mem a b I := by
   obtain ⟨h₁, h₂⟩ := h
   simp at h₁ h₂
   exact ⟨by linarith, h₂⟩
-  done
 
 lemma mem_left_or_mem_right {a b : ℕ} (I : BasicInterval) (h : mem a b I) :
     mem a b I.left ∨ mem a b I.right := by
   by_cases hl : mem a b I.left
   · exact Or.inl hl
-    done
   · unfold mem at h hl ⊢
     rw [@not_and_or] at hl
     cases' hl with hl hl <;> push_neg at hl <;> simp at hl ⊢
     · exact Or.inl ⟨h.1, by linarith⟩
-      done
     · refine Or.inr ⟨hl.le, h.2⟩
-      done
-
 
 /-- A fraction `a/b` that lies in a basic interval `[a₁/b₁, a₂/b₂]` satisfies
 `a = k₁ a₁ + k₂ a₂` and `b = k₁ b₁ + k₂ b₂` for some natural numbers `k₁` and `k₂`. -/
@@ -172,10 +164,8 @@ lemma exists_of_mem {a b : ℕ} {I : BasicInterval} (h : mem a b I) :
       rw [← sub_nonneg] at h₂ ⊢
       convert h₂ using 1
       linear_combination (k₂ - k₁') * rel
-      done
     rw [hk] at H₁ H₂
     refine ⟨k₁, k₂, ?_, ?_⟩ <;> linarith
-    done
   | right I ih =>
     obtain ⟨k₁, k₂', H₁, H₂⟩ := ih (mem_of_mem_right I h)
     simp only [right_a₁, right_a₂, right_b₁, right_b₂]
@@ -188,10 +178,8 @@ lemma exists_of_mem {a b : ℕ} {I : BasicInterval} (h : mem a b I) :
       rw [← sub_nonneg] at h₁ ⊢
       convert h₁ using 1
       linear_combination (k₁ - k₂') * rel
-      done
     rw [hk] at H₁ H₂
     refine ⟨k₁, k₂, ?_, ?_⟩ <;> linarith
-    done
 
 /-- A fraction `a/b` that lies in the interior of a basic interval `[a₁/b₁, a₂/b₂]` satisfies
 `a = k₁ a₁ + k₂ a₂` and `b = k₁ b₁ + k₂ b₂` for some positive natural numbers `k₁` and `k₂`. -/
@@ -205,13 +193,11 @@ lemma exists_of_mem_interior {a b : ℕ} {I : BasicInterval} (h : mem_interior a
     replace h := h.2
     simp only [h₁, mul_assoc, h₂, mul_comm I.a₂] at h
     exact lt_irrefl _ h
-    done
   · rintro rfl
     simp only [zero_mul, add_zero] at h₁ h₂
     replace h := h.1
     simp only [h₁, mul_assoc, h₂, mul_comm I.a₁] at h
     exact lt_irrefl _ h
-    done
 
 /-- A basic interval is *feasible* if it is minimal such that `a₁+b₁, a₂+b₂ ≤ d`. -/
 def feasible (d : ℕ) (I : BasicInterval) : Prop :=
@@ -252,6 +238,5 @@ lemma gt_of_mem_interior_feasible {a b d : ℕ} {I : BasicInterval}
       Nat.add_le_add (Nat.le_mul_of_pos_left _ hk₁) (Nat.le_mul_of_pos_left _ hk₂)
     _ = k₁ * I.a₁ + k₂ * I.a₂ + (k₁ * I.b₁ + k₂ * I.b₂) := by ring
     _ = a + b                                           := by rw [h₁, h₂]
-  done
 
 end BasicInterval
