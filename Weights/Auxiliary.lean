@@ -1,4 +1,5 @@
-import Mathlib.Tactic
+import Mathlib.Algebra.Order.Ring.Nat
+import Mathlib.Data.Nat.GCD.Basic
 
 /-!
 # Some useful lemmas that are not specific to weigths
