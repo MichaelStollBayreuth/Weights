@@ -64,7 +64,6 @@ have entries bounded by the degree $d$. See `Weight.dom_by_max_le_d` and `Weight
 -/
 
 /-- A *weight* of *dimension* `n` and *degree* `d` is a map from `{0..n}` to `ℕ`. -/
-@[nolint unusedArguments] -- stop linter complaining about `_d`
 def Weight (n _d : ℕ) : Type := Fin n.succ → ℕ
 -- deriving One, AddCommMonoid -- does not work
 
