@@ -77,7 +77,7 @@ protected instance AddCommMonoid (n d : ℕ) : AddCommMonoid (Weight n d) := by
 
 open BigOperators
 
-variable {n d : ℕ} [NeZero d] -- fix dimension and (positive) degree
+variable {n d : ℕ} -- fix dimension and (positive) degree
 
 /-!
 ### Some boilerplate `simp` and `ext` lemmas
@@ -181,7 +181,7 @@ lemma pair_perm (w a : Weight n d) (σ : Equiv.Perm (Fin n.succ)) :
 lemma pair_perm' (w a : Weight n d) (σ : Equiv.Perm (Fin n.succ)) :
     pair (w.comp σ) a = pair w (a.comp σ⁻¹) := by
   rw [← pair_perm w _ σ]
-  simp only [comp_comp, mul_left_inv, comp_one]
+  simp only [comp_comp, inv_mul_cancel, comp_one]
 
 lemma pair_swap_eq (w a : Weight n d) (i j : Fin n.succ) :
     pair w (a.comp $ Equiv.swap i j) = pair (w.comp $ Equiv.swap i j) a := by
@@ -236,10 +236,10 @@ lemma tw_inj (n d : ℕ) [NeZero d] : Function.Injective (tw n d) := by
     Subtype.mk.injEq] at h
   replace h := congr_fun h k
   simp only [Pi.add_apply, Pi.mul_apply, Function.update_apply, zero_apply, mul_ite, mul_one,
-    mul_zero, if_true, add_right_inj, ite_eq_left_iff] at h
+    mul_zero, if_true, add_right_inj, ite_eq_left_iff, zero_ne_one] at h
   exact (of_not_not h).symm
 
-lemma pair_tw (w : Weight n d) (k : Fin n.succ) :
+lemma pair_tw [NeZero d] (w : Weight n d) (k : Fin n.succ) :
     w.pair (tw n d k) = (d - 1) * (w 0) + (w k) := by
   simp only [pair, tw, tw', nsmul_eq_mul, Pi.natCast_def, Nat.cast_tsub, Nat.cast_id, Nat.cast_one,
     Pi.add_apply, Pi.mul_apply, Function.update_apply, zero_apply, mul_ite, mul_one, mul_zero,
@@ -281,7 +281,7 @@ example : PartialOrder (testvecs n d → ℕ) := inferInstance
 
 @[simp] lemma f_apply (w : Weight n d) (a : testvecs n d) : f w a = w.E - (pair w a) := rfl
 
-lemma eval_f_tw (w : Weight n d) (k : Fin n.succ) :
+lemma eval_f_tw [NeZero d] (w : Weight n d) (k : Fin n.succ) :
     f w (tw n d k) = w.E - (d - 1) * (w 0) - (w k) := by
   simp only [f, pair, ge_iff_le, tsub_le_iff_right, Nat.sub_sub]
   exact congr_arg (E w - ·) <| pair_tw w k
@@ -396,10 +396,10 @@ lemma dom_perm (w w' : Weight n d) (σ : Equiv.Perm (Fin n.succ)) :
   simp [E_perm, pair_perm']
   refine ⟨fun h a ha ↦ ?_, fun h a ha ↦ h (a.comp σ⁻¹) (testvecs_perm ha σ⁻¹)⟩
   specialize h (a.comp σ) (testvecs_perm ha σ)
-  rwa [comp_comp, mul_right_inv, Weight.comp, Equiv.Perm.coe_one, Function.comp_id] at h
+  rwa [comp_comp, mul_inv_cancel, Weight.comp, Equiv.Perm.coe_one, Function.comp_id] at h
 
 /-- If `w` dominates `w'` and both have `0` as their first entry, then `E w ≤ E w'`. -/
-lemma E_dom_mono {w w' : Weight n d} (hw : w 0 = 0) (hw' : w' 0 = 0) (h : w ≤d w') :
+lemma E_dom_mono [NeZero d] {w w' : Weight n d} (hw : w 0 = 0) (hw' : w' 0 = 0) (h : w ≤d w') :
     w.E ≤ w'.E := by
   simp only [dom_iff, f_le_iff] at h
   specialize h (tw n d 0)
@@ -407,7 +407,7 @@ lemma E_dom_mono {w w' : Weight n d} (hw : w 0 = 0) (hw' : w' 0 = 0) (h : w ≤d
   simpa only [mul_zero, tsub_zero] using h
 
 /-- If `w` and `w'` dominate each other and both have first entry zero, then `E w = E w'`.-/
-lemma E_dom_eq {w w' : Weight n d} (hw : w 0 = 0) (hw' : w' 0 = 0) (h₁ : w ≤d w') (h₂ : w' ≤d w) :
+lemma E_dom_eq [NeZero d] {w w' : Weight n d} (hw : w 0 = 0) (hw' : w' 0 = 0) (h₁ : w ≤d w') (h₂ : w' ≤d w) :
     w.E = w'.E :=
   le_antisymm (E_dom_mono hw hw' h₁) (E_dom_mono hw' hw h₂)
 

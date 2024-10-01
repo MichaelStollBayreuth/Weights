@@ -5,7 +5,7 @@ namespace Weight
 
 open BigOperators
 
-variable {n d : ℕ} [NeZero d]
+variable {n d : ℕ} -- [NeZero d]
 
 /-!
 ## Uniqueness of the minimal complete set of (normalized) weight vectors
@@ -89,7 +89,7 @@ lemma trunc_dom' {w : Weight n d} (hE : w.trunc.E = w.E) : w ≤d w.trunc := by
   exact Nat.sub_le_sub_left (trunc_pair_le_pair w a) _
 
 /-- The converse: if `w` dominates `trunc w` and `w 0 = 0`, then `E (trunc w) = E w`. -/
-lemma E_trunc_eq_E_of_dom {w : Weight n d} (h : w ≤d w.trunc) (h' : w 0 = 0) : w.trunc.E = w.E :=
+lemma E_trunc_eq_E_of_dom [NeZero d] {w : Weight n d} (h : w ≤d w.trunc) (h' : w 0 = 0) : w.trunc.E = w.E :=
   E_dom_eq (trunc_zero h') h' (trunc_dom _) h
 
 /-!
@@ -129,7 +129,7 @@ lemma dom_of_gec {w w' : Weight n d} (hE : E w = E w') (h : w' ≤c w) : w ≤d 
   exact fun a _ ↦ Nat.sub_le_sub_left (pair_le_pair_of_lec _ _ _ h) _
 
 /-- If `w` has first entry `0`, `w'` is balanced, and `E w = E w'`, then `w ≤d w' ↔ w' ≤c w`. -/
-lemma dom_iff_gec_of_balanced {w w' : Weight n d} (hw₁ : w 0 = 0) (hw'₂ : w'.balanced)
+lemma dom_iff_gec_of_balanced [NeZero d] {w w' : Weight n d} (hw₁ : w 0 = 0) (hw'₂ : w'.balanced)
     (hE : E w = E w') :
     w ≤d w' ↔ w' ≤c w := by
   refine ⟨fun h ↦ (lec_iff _ _).mpr (fun j ↦ ?_), dom_of_gec hE⟩
@@ -202,7 +202,7 @@ lemma index_exists {w : Weight n d} (hw : w.normalized) :
   · exact hw.2 hij
 
 /-- If `w` has first entry `0` and is minimal w.r.t. `≤d`, then `w` is balanced. -/
-lemma balanced_of_min {w : Weight n d} (hw : w 0 = 0) (hmin : ∀ u, u ≤d w → w ≤d u) :
+lemma balanced_of_min [NeZero d] {w : Weight n d} (hw : w 0 = 0) (hmin : ∀ u, u ≤d w → w ≤d u) :
     w.balanced := by
   by_contra hb
   obtain ⟨hE', hb', hc, hne⟩ :=
@@ -212,7 +212,7 @@ lemma balanced_of_min {w : Weight n d} (hw : w 0 = 0) (hmin : ∀ u, u ≤d w �
               (trunc_dom w).trans <| hmin _  <| (dom_of_gec hE' hc).trans $ trunc_dom w)
 
 /-- If `w` is normalized and minimal w.r.t. `≤d` on monotone weights, then `w` is balanced. -/
-lemma balanced_of_min' {w : Weight n d} (hw : w.normalized)
+lemma balanced_of_min' [NeZero d] {w : Weight n d} (hw : w.normalized)
     (hmin : ∀ u : Weight n d, (Monotone u) → u ≤d w → w ≤d u) :
     w.balanced := by
   by_contra hb
@@ -238,7 +238,7 @@ lemma balanced_of_min' {w : Weight n d} (hw : w.normalized)
 
 /-- If two weights with first entry `0` dominate each other and are minimal w.r.t. `≤d`,
 then they are equal. -/
-lemma eq_of_dom_and_min {w w' : Weight n d} (hw : w 0 = 0) (hw' : w' 0 = 0) (h : w' ≤d w)
+lemma eq_of_dom_and_min [NeZero d] {w w' : Weight n d} (hw : w 0 = 0) (hw' : w' 0 = 0) (h : w' ≤d w)
     (hmin : ∀ u, u ≤d w → w ≤d u) :
     w = w' := by
   have h₁ := hmin _ h                   -- `w ≤d w'`
@@ -251,7 +251,7 @@ lemma eq_of_dom_and_min {w w' : Weight n d} (hw : w 0 = 0) (hw' : w' 0 = 0) (h :
 
 /-- If two normalized weights dominate each other and are minimal w.r.t. `≤d` on normalized weights,
  then they are equal. -/
-lemma eq_of_dom_and_min' {w w' : Weight n d} (hw : w.normalized) (hw' : w'.normalized)
+lemma eq_of_dom_and_min' [NeZero d] {w w' : Weight n d} (hw : w.normalized) (hw' : w'.normalized)
     (h : w' ≤d w) (hmin : ∀ u, normalized u → u ≤d w → w ≤d u) :
     w = w' := by
   have hminw := (min_Monotone_iff_min_normalized w).mpr hmin
@@ -318,7 +318,7 @@ lemma dom_of_dom_perm' {w w' : Weight n d} (hw' : Monotone w') (hd : w ≤d w') 
   have h : w'' = w' ∘ ⇑(Tuple.sort w' * (Tuple.sort w *
                     Tuple.sort ((w'.comp (Tuple.sort w')).comp (Tuple.sort w)))) := by
     simp only [Weight.comp, Equiv.Perm.coe_mul]
-    rw [← Function.comp.assoc w' (Tuple.sort w'), Tuple.sort_eq_refl_iff_monotone.mpr hw']
+    rw [← Function.comp_assoc w' (Tuple.sort w'), Tuple.sort_eq_refl_iff_monotone.mpr hw']
     simp only [Equiv.coe_refl, Function.comp_id]
     rfl
   rwa [← h]
@@ -342,7 +342,7 @@ def M (n d : ℕ) [NeZero d] : Set (Weight n d) :=
   {w | w.normalized ∧ ∀ w', normalized w' → w' ≤d w → w ≤d w'}
 
 /-- The set of all minimal normalized weight vectors is complete. -/
-lemma M_is_complete : complete_set (M n d) := by
+lemma M_is_complete [NeZero d] : complete_set (M n d) := by
   intro w
   refine WellFoundedLT.induction (α := Weight n d)
     (C := fun w ↦ normalized w → ∃ w', w' ∈ M n d ∧ w' ≤ w) w (fun w₁ h ↦ ?_)
@@ -360,16 +360,16 @@ lemma M_is_complete : complete_set (M n d) := by
     exact hf (this h')
 
 /-- If a normalized weight `w` dominates a weight `w' ∈ M n d`, then `w = w'`. -/
-lemma eq_of_dom_in_M {w w' : Weight n d} (hw : w.normalized) (hd : w ≤d w') (hM : w' ∈ M n d) :
+lemma eq_of_dom_in_M [NeZero d] {w w' : Weight n d} (hw : w.normalized) (hd : w ≤d w') (hM : w' ∈ M n d) :
     w = w' :=
   (eq_of_dom_and_min' hM.1 hw hd hM.2).symm
 
 /-- The set of all minimal normalized weight vectors is a minimal complete set. -/
-lemma M_is_minimal : minimal_complete_set (M n d) :=
+lemma M_is_minimal [NeZero d] : minimal_complete_set (M n d) :=
   ⟨M_is_complete, fun ?w₁ ?w₂ hw₁ hw₂ h₁ ↦ eq_of_dom_in_M hw₁.1 h₁ hw₂⟩
 
 /-- If `S` is a minimal complete set of normalized weight vectors, then `S = M n d`. -/
-lemma M_is_unique {S : Set (Weight n d)} (hS₁ : ∀ w ∈ S, normalized w)
+lemma M_is_unique [NeZero d] {S : Set (Weight n d)} (hS₁ : ∀ w ∈ S, normalized w)
     (hS₂ : minimal_complete_set S) :
     S = M n d := by
   ext w
@@ -383,7 +383,7 @@ lemma M_is_unique {S : Set (Weight n d)} (hS₁ : ∀ w ∈ S, normalized w)
     exact eq_of_dom_and_min' (hS₁ w' hw'₁) hw₁ (hw₂ w' (hS₁ w' hw'₁) hw'₂)
                              (fun u hu₁ hu₂ ↦ hw'₂.trans (hw₂ u hu₁ (hu₂.trans hw'₂)))
 
-lemma not_in_M_of_dom_ne {w : Weight n d}
+lemma not_in_M_of_dom_ne [NeZero d] {w : Weight n d}
     (hw : ∃ w' : Weight n d, w'.normalized ∧ w' ≤d w ∧ w' ≠ w) :
     w ∉ M n d := by
   obtain ⟨w', hw'₁, hw'₂, hw'₃⟩ := hw
@@ -391,7 +391,7 @@ lemma not_in_M_of_dom_ne {w : Weight n d}
   exact hw'₃ (eq_of_dom_in_M hw'₁ hw'₂ hf)
 
 /-- Non-zero elements of `M n d` have coprime entries. -/
-lemma gcd_eq_one_of_in_M {w : Weight n d} (h₀ : w ≠ 0) (hM : w ∈ M n d) :
+lemma gcd_eq_one_of_in_M [NeZero d] {w : Weight n d} (h₀ : w ≠ 0) (hM : w ∈ M n d) :
     Finset.univ.gcd w = 1 := by
   set g := Finset.univ.gcd w
   by_contra hfg
