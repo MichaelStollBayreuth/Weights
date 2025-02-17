@@ -229,7 +229,7 @@ lemma balanced_of_min' [NeZero d] {w : Weight n d} (hw : w.normalized)
   cases' eq_or_ne i k with hi hi <;> cases' eq_or_ne j k with hj hj <;> simp [hi, hj]
   · have : w j = Function.update w k 1 j := by simp only [Function.update_apply, hj, if_false]
     refine ⟨?_, one_le_E w⟩
-    rw [(Function.update_same k 1 w).symm, this]
+    rw [(Function.update_self k 1 w).symm, this]
     exact hk₂ (le_of_eq_of_le hi.symm hij)
   · exact Or.inl ((le_of_le_of_eq (hw.2 (le_of_le_of_eq hij hj)) hk₁).trans zero_le_one)
   · cases' le_or_lt w.E (w j) with h h
@@ -299,7 +299,7 @@ lemma dom_of_dom_perm {w w' : Weight n d} (hw : Monotone w) (hd : w ≤d w') : w
       simp only [Weight.comp, Function.comp_apply, Equiv.swap_apply_left, Equiv.swap_apply_right,
         a']
       exact le_of_lt ham
-    have hag : g'.pair a' = pair g a := by simp only [pair_swap_eq g' a, hgg']
+    have hag : g'.pair a' = pair g a := by rw [← hgg', pair_swap_eq]
     have := pair_swap_le (n := n) (d := d) hgs ham'
     simp only [haa', hag] at this
     exact (hwg a ha).trans (Nat.sub_le_sub_left this _)
