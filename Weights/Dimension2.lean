@@ -490,7 +490,7 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
       rw [hks₂, hkt₂, hs₁a₁, ht₁b₁, add_mul _ _ I.b₁, mul_assoc _ I.a₂, I.rel]
       ring
     reduce_mod_3 this
-    simpa only [hs₁t₁mod3, hs₂t₂mod3, add_left_eq_self] using this
+    simpa only [hs₁t₁mod3, hs₂t₂mod3, add_eq_right] using this
   have hk₂ : 3 ≤ k₂ := by
     refine Nat.le_of_dvd ((Nat.eq_zero_or_pos _).resolve_left ?_) hk₂'
     rintro rfl

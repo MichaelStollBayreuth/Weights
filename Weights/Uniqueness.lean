@@ -176,7 +176,7 @@ lemma exists_balanced_ltc (w : Weight n d) (hb : ¬ w.balanced)
       simp only [hjk, (Nat.eq_zero_of_le_zero (le_of_le_of_eq (trunc_lec w k) hk)), zero_le']
     · exact Nat.le_refl (trunc w j)
   · -- show `w.trunc ≠ w'`.
-    rw [hf, self_eq_add_right] at hsum'
+    rw [hf, left_eq_add] at hsum'
     exact Nat.one_ne_zero hsum'
 
 /-- If `w` is normalized, then there is an index `k` such that `w k = 0` and replacing

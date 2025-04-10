@@ -37,7 +37,7 @@ lemma testvecs1 (n : ℕ) : Function.Bijective (tw n 1) := by
     have hs : insert j s = Finset.univ := by simp [Finset.insert_eq, s]
     have hjs : ¬j ∈ s := by simp [s]
     rw [← hs, Finset.sum_insert hjs, hj] at h₂
-    simp only [add_right_eq_self, Finset.sum_eq_zero_iff, Finset.mem_sdiff, Finset.mem_univ,
+    simp only [add_eq_left, Finset.sum_eq_zero_iff, Finset.mem_sdiff, Finset.mem_univ,
       Finset.mem_singleton, true_and, s] at h₂
     exact h₂ k hk
   ext k
