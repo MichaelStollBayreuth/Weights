@@ -155,7 +155,7 @@ open Finset in
 then swapping `a i` and `a j` decreases `pair w a`. -/
 lemma pair_swap_le {w a : Weight n d} {i j : Fin n.succ} (hw : w i ≤ w j) (ha : a i ≤ a j) :
     w.pair (a.comp $ Equiv.swap i j) ≤ w.pair a := by
-  cases' eq_or_ne i j with h h
+  rcases eq_or_ne i j with h | h
   · simp only [Weight.comp, h, Equiv.swap_self, Equiv.coe_refl, Function.comp_id, le_refl]
   · have haij {k} (hk : k ∈ (univ.erase j).erase i) : (a.comp (Equiv.swap i j)) k = a k := by
       rw [comp_apply,
@@ -298,7 +298,7 @@ lemma f_le_mul (w : Weight n d) (k : ℕ) : w.f ≤ (k.succ • w).f := by
              ≤ k.succ * (w.sum * d / (n + 1)) + 1 - k.succ * w.pair a := by
     set m := w.sum * d / (n + 1)
     set l := w.pair a
-    cases' lt_or_le m l with hlt hle
+    rcases lt_or_ge m l with hlt | hle
     · rw [Nat.sub_eq_zero_of_le hlt]
       exact Nat.zero_le _
     · rw [← tsub_add_eq_add_tsub hle, ← tsub_add_eq_add_tsub (mul_le_mul' le_rfl hle),

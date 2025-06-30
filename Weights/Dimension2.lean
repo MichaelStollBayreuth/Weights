@@ -144,7 +144,7 @@ lemma add_le_delta_of_mem_S_le {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSle : m
   replace hSle := mul_left_cancel₀ (by norm_num) hSle
   norm_cast at hSle -- `a * x₂ = b * x₁`
   have ha : a ≤ x₁ := by
-    cases' eq_or_ne x₁ 0 with H H
+    rcases eq_or_ne x₁ 0 with H | H
     · simp only [H, mul_zero, mul_eq_zero] at hSle
       -- `hSle : a = 0 ∨ x₂ = 0`
       rcases hSle with rfl | rfl
@@ -208,7 +208,7 @@ lemma le_delta_of_mem_S_ge {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSge : mem_S
   norm_cast at hSge
   have ha : a ≤ x₁ := Nat.le_of_dvd Hx₁' <| hcop.dvd_of_dvd_mul_left <| Dvd.intro x₂ hSge
   have hb : b ≤ x₂ := by
-    cases' eq_or_ne x₂ 0 with H H
+    rcases eq_or_ne x₂ 0 with H | H
     · simp only [H, mul_zero, zero_eq_mul] at hSge
       -- `hSge : b = 0 ∨ x₁ = 0`
       rcases hSge with rfl | rfl
@@ -273,11 +273,11 @@ lemma dom_of_mem_interior_left (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterv
     norm_num at hi ⊢
     set bi : ℤ := d - 3 * (i.val 2) with hbi_def
     set ai : ℤ := d - 3 * (i.val 1) + (d - 3 * (i.val 2)) with hai_def
-    cases' le_or_lt 0 bi with hbi hbi
-    · refine (mul_nonneg_iff_of_pos_right (Int.ofNat_pos.mpr I.b₁_pos)).mp ?_
+    rcases le_or_gt 0 bi with hbi | hbi
+    · refine (mul_nonneg_iff_of_pos_right (Int.natCast_pos.mpr I.b₁_pos)).mp ?_
       calc
         (0 : ℤ)
-          ≤ (I.a₁ * bi + I.b₁ * ai) * I.b₂           := Int.mul_nonneg hi (Int.ofNat_nonneg I.b₂)
+          ≤ (I.a₁ * bi + I.b₁ * ai) * I.b₂           := Int.mul_nonneg hi (Int.natCast_nonneg I.b₂)
         _ = I.a₁ * I.b₂ * bi + I.b₁ * I.b₂ * ai      := by ring
         _ = I.a₂ * I.b₁ * bi + I.b₁ * I.b₂ * ai - bi := by norm_cast; rw [I.rel]; push_cast; ring
         _ = (I.a₂ * bi + I.b₂ * ai) * I.b₁ - bi      := by ring
@@ -285,9 +285,9 @@ lemma dom_of_mem_interior_left (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterv
     · have hai : 0 ≤ ai := by
         by_contra hai
         have H₁ : I.a₁ * bi ≤ 0 :=
-          Int.mul_nonpos_of_nonneg_of_nonpos (Int.ofNat_nonneg I.a₁) hbi.le
+          Int.mul_nonpos_of_nonneg_of_nonpos (Int.natCast_nonneg I.a₁) hbi.le
         have H₂ : I.b₁ * ai < 0 :=
-          Int.mul_neg_of_pos_of_neg (Int.ofNat_pos.mpr I.b₁_pos) (Int.not_le.mp hai)
+          Int.mul_neg_of_pos_of_neg (Int.natCast_pos.mpr I.b₁_pos) (Int.not_le.mp hai)
         linarith only [hi, H₁, H₂]
       have memS : mem_S_le d ai (-bi) :=
         ⟨Int.neg_pos_of_neg hbi, i.val 1, i.val 2, by linarith, by linarith, by ring⟩
@@ -324,11 +324,11 @@ lemma dom_of_mem_interior_right (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInter
     norm_num at hi ⊢
     set bi : ℤ := d - 3 * (i.val 2) with hbi_def
     set ai : ℤ := d - 3 * (i.val 1) + (d - 3 * (i.val 2)) with hai_def
-    cases' le_or_lt 0 ai with hai hai
-    · refine (mul_nonneg_iff_of_pos_right (Int.ofNat_pos.mpr I.a₂_pos)).mp ?_
+    rcases le_or_gt 0 ai with hai | hai
+    · refine (mul_nonneg_iff_of_pos_right (Int.natCast_pos.mpr I.a₂_pos)).mp ?_
       calc
         (0 : ℤ)
-          ≤ (I.a₂ * bi + I.b₂ * ai) * I.a₁           := Int.mul_nonneg hi (Int.ofNat_nonneg I.a₁)
+          ≤ (I.a₂ * bi + I.b₂ * ai) * I.a₁           := Int.mul_nonneg hi (Int.natCast_nonneg I.a₁)
         _ = I.a₁ * I.a₂ * bi + I.a₁ * I.b₂ * ai      := by ring
         _ = I.a₁ * I.a₂ * bi + I.a₂ * I.b₁ * ai - ai := by norm_cast; rw [I.rel]; push_cast; ring
         _ = (I.a₁ * bi + I.b₁ * ai) * I.a₂ - ai      := by ring
@@ -336,9 +336,9 @@ lemma dom_of_mem_interior_right (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInter
     · have hbi : 0 ≤ bi := by
         by_contra hbi
         have H₁ : I.b₂ * ai ≤ 0 :=
-          Int.mul_nonpos_of_nonneg_of_nonpos (Int.ofNat_nonneg I.b₂) hai.le
+          Int.mul_nonpos_of_nonneg_of_nonpos (Int.natCast_nonneg I.b₂) hai.le
         have H₂ : I.a₂ * bi < 0 :=
-          Int.mul_neg_of_pos_of_neg (Int.ofNat_pos.mpr I.a₂_pos) (Int.not_le.mp hbi)
+          Int.mul_neg_of_pos_of_neg (Int.natCast_pos.mpr I.a₂_pos) (Int.not_le.mp hbi)
         linarith only [hi, H₁, H₂]
       have memS : mem_S_ge d (-ai) bi := by
         refine ⟨Int.neg_pos_of_neg hai, i.val 1, i.val 2, ?_, by linarith, by linarith, by ring⟩
@@ -404,7 +404,7 @@ lemma condition_iff_weaker_le (d : ℕ) [NeZero d] (I : BasicInterval) :
     (∀ (a b : ℕ), Nat.Coprime a b → mem_S_le d a b → mem a b I → a * I.b₂ = b * I.a₂) ↔
       ∀ (a b : ℕ), mem_S_le d a b → mem a b I → a * I.b₂ = b * I.a₂ := by
   refine ⟨fun H a b h₁ h₂ ↦ ?_, fun H a b _ ↦ H a b⟩
-  cases' Nat.eq_zero_or_pos (Nat.gcd a b) with h₀ h₀
+  rcases Nat.eq_zero_or_pos (Nat.gcd a b) with h₀|  h₀
   · obtain ⟨rfl, rfl⟩ := Nat.gcd_eq_zero_iff.mp h₀
     simp only [zero_mul]
   obtain ⟨g, a', b', hg₁, hcop, rfl, rfl⟩ := Nat.exists_coprime' h₀; clear h₀
@@ -416,7 +416,7 @@ lemma condition_iff_weaker_ge (d : ℕ) [NeZero d] (I : BasicInterval) :
     (∀ (a b : ℕ), Nat.Coprime a b → mem_S_ge d a b → mem a b I → a * I.b₁ = b * I.a₁) ↔
       ∀ (a b : ℕ), mem_S_ge d a b → mem a b I → a * I.b₁ = b * I.a₁ := by
   refine ⟨fun H a b h₁ h₂ ↦ ?_, fun H a b _ ↦ H a b⟩
-  cases' Nat.eq_zero_or_pos (Nat.gcd a b) with h₀ h₀
+  rcases Nat.eq_zero_or_pos (Nat.gcd a b) with h₀ | h₀
   · obtain ⟨rfl, rfl⟩ := Nat.gcd_eq_zero_iff.mp h₀
     simp only [zero_mul]
   obtain ⟨g, a', b', hg₁, hcop, rfl, rfl⟩ := Nat.exists_coprime' h₀; clear h₀
@@ -450,7 +450,7 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
   rw [← condition_iff_weaker_le, ← condition_iff_weaker_ge]
   by_contra! H
   obtain ⟨⟨s₁, t₁, hcop₁, hSle, hmem₁, hne₁⟩, ⟨s₂, t₂, hcop₂, hSge, hmem₂, hne₂⟩⟩ := H
-  cases' eq_or_ne (d : ZMod 3) 0 with hd hd
+  rcases eq_or_ne (d : ZMod 3) 0 with hd | hd
   · -- case `d` is divisble by 3
     obtain ⟨δ, rfl⟩ := (ZMod.natCast_zmod_eq_zero_iff_dvd d 3).mp hd
     -- `s₁/t₁` must be left endpoint
@@ -536,13 +536,13 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
 with `s + t ≤ d`. -/
 theorem dom_by_max_le_d (d : ℕ) [NeZero d] (a b : ℕ) :
     ∃ s t : ℕ, s + t ≤ d ∧ of_fraction d s t ≤d of_fraction d a b := by
-  cases' le_or_lt (a + b) d with h h
+  rcases le_or_gt (a + b) d with h | h
   · -- case `a + b ≤ d`: vector dominates itself
     exact ⟨a, b, h, Eq.le rfl⟩
   · -- case `a + b > d`. Get feasible interval that contains `a/b`.
     obtain ⟨I, hI, hIab⟩ := mem_feasible d a b
     have hab : a ≠ 0 ∨ b ≠ 0 := by by_contra! hab; linarith
-    cases' dom_of_mem d hab hIab (condition_of_feasible hI) with H H
+    rcases dom_of_mem d hab hIab (condition_of_feasible hI) with H | H
     · exact ⟨I.a₁, I.b₁, hI.1, H⟩
     · exact ⟨I.a₂, I.b₂, hI.2.1, H⟩
 

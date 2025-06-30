@@ -65,7 +65,7 @@ lemma trunc_pair_eq_pair (w a : Weight n d) (h : ∀ j, w.E < w j → a j ≤ 0)
   congr
   ext j
   simp only [mul_eq_mul_left_iff, min_eq_left_iff]
-  cases' le_or_lt (w j) w.E with h' h'
+  rcases le_or_gt (w j) w.E with h' | h'
   · exact Or.inl h'
   · exact Or.inr <| Nat.eq_zero_of_le_zero (h j h')
 
@@ -226,13 +226,13 @@ lemma balanced_of_min' [NeZero d] {w : Weight n d} (hw : w.normalized)
     w.trunc_dom.trans <| hmin _ ?_ <| (dom_of_gec hE' hc).trans w.trunc_dom
   intro i j hij
   simp only [Function.update_apply, trunc_apply]
-  cases' eq_or_ne i k with hi hi <;> cases' eq_or_ne j k with hj hj <;> simp [hi, hj]
+  rcases eq_or_ne i k with hi | hi <;> rcases eq_or_ne j k with hj | hj <;> simp [hi, hj]
   · have : w j = Function.update w k 1 j := by simp only [Function.update_apply, hj, if_false]
     refine ⟨?_, one_le_E w⟩
     rw [(Function.update_self k 1 w).symm, this]
     exact hk₂ (le_of_eq_of_le hi.symm hij)
   · exact Or.inl ((le_of_le_of_eq (hw.2 (le_of_le_of_eq hij hj)) hk₁).trans zero_le_one)
-  · cases' le_or_lt w.E (w j) with h h
+  · rcases le_or_gt w.E (w j) with h | h
     · exact Or.inr h
     · exact Or.inl (hw.2 hij)
 
@@ -284,7 +284,7 @@ lemma dom_of_dom_perm {w w' : Weight n d} (hw : Monotone w) (hd : w ≤d w') : w
     exact le_of_lt hij₂
   intro a ha
   rw [E_perm g (Equiv.swap i j)]
-  cases' le_or_lt (a i) (a j) with ham ham
+  rcases le_or_gt (a i) (a j) with ham | ham
   · rw [tsub_le_iff_right]
     specialize hwg (a.comp (Equiv.swap i j)) (testvecs_perm ha _)
     rw [pair_swap_eq g, tsub_le_iff_right] at hwg
@@ -355,7 +355,7 @@ lemma M_is_complete [NeZero d] : complete_set (M n d) := by
     refine ⟨w₁, ⟨hw₁n, fun w' hw' h' ↦ ?_⟩, le_refl w₁⟩
     by_contra hf
     have := hw₁ w' hw'
-    rw [lt_iff_le_not_le] at this
+    rw [lt_iff_le_not_ge] at this
     push_neg at this
     exact hf (this h')
 

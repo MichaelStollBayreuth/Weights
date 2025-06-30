@@ -113,9 +113,9 @@ def mem_interior (a b : ℕ) (I : BasicInterval) : Prop := b * I.a₁ < a * I.b�
 lemma eq_or_eq_or_mem_interior_of_mem {a b : ℕ} {I : BasicInterval} (h : mem a b I) :
     a * I.b₁ = b * I.a₁ ∨ a * I.b₂ = b * I.a₂ ∨ mem_interior a b I := by
   obtain ⟨h₁, h₂⟩ := h
-  cases' h₁.eq_or_lt with H₁ H₁
+  rcases h₁.eq_or_lt with H₁ | H₁
   · exact Or.inl H₁.symm
-  cases' h₂.eq_or_lt with H₂ H₂
+  rcases h₂.eq_or_lt with H₂ | H₂
   · exact Or.inr <| Or.inl H₂
   exact Or.inr <| Or.inr ⟨H₁, H₂⟩
 
@@ -142,7 +142,7 @@ lemma mem_left_or_mem_right {a b : ℕ} (I : BasicInterval) (h : mem a b I) :
   · exact Or.inl hl
   · unfold mem at h hl ⊢
     rw [@not_and_or] at hl
-    cases' hl with hl hl <;> push_neg at hl <;> simp at hl ⊢
+    rcases hl with hl | hl <;> push_neg at hl <;> simp at hl ⊢
     · exact Or.inl ⟨h.1, by linarith⟩
     · refine Or.inr ⟨hl.le, h.2⟩
 
