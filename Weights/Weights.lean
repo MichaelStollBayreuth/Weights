@@ -121,7 +121,7 @@ protected def sum (w : Weight n d) : ℕ := ∑ j, w j
 
 @[simp] lemma sum_perm (w : Weight n d) (σ : Equiv.Perm (Fin n.succ)) :
     (w.comp σ).sum = w.sum := by
-  simp only [Weight.sum, Function.comp_apply]
+  simp only [Weight.sum]
   exact Fintype.sum_bijective σ (Equiv.bijective σ) _ _ (fun i ↦ rfl)
 
 @[simp] lemma sum_smul (w : Weight n d) (k : ℕ) : (k • w).sum = k * w.sum := by
@@ -206,7 +206,7 @@ lemma tv_finset :
     ((Finset.Nat.antidiagonalTuple n.succ d) : Set (Fin n.succ → ℕ)) = testvecs n d := by
   simp only [testvecs]
   ext a
-  simp only [Finset.Nat.mem_antidiagonalTuple, Finset.mem_coe, Finset.mem_mk, Weight.sum]
+  simp only [Finset.Nat.mem_antidiagonalTuple, Finset.mem_coe, Weight.sum]
   rfl
 
 /-- The set of test vectors is closed under permutation. -/
@@ -283,7 +283,7 @@ example : PartialOrder (testvecs n d → ℕ) := inferInstance
 
 lemma eval_f_tw [NeZero d] (w : Weight n d) (k : Fin n.succ) :
     f w (tw n d k) = w.E - (d - 1) * (w 0) - (w k) := by
-  simp only [f, pair, ge_iff_le, tsub_le_iff_right, Nat.sub_sub]
+  simp only [f, pair, Nat.sub_sub]
   exact congr_arg (E w - ·) <| pair_tw w k
 
 lemma f_eq_on_shift (w : Weight n d) (k : ℕ) : (w + k • (1 : Weight n d)).f = w.f := by
@@ -292,7 +292,7 @@ lemma f_eq_on_shift (w : Weight n d) (k : ℕ) : (w + k • (1 : Weight n d)).f 
 
 /-- The map associated to `w` is pointwise below that associated to a positive multiple of `w`. -/
 lemma f_le_mul (w : Weight n d) (k : ℕ) : w.f ≤ (k.succ • w).f := by
-  simp only [E, f_le_iff, f_apply, sum_smul, pair_smul_left, SetCoe.forall, Subtype.coe_mk]
+  simp only [E, f_le_iff, f_apply, sum_smul, pair_smul_left, SetCoe.forall]
   intro a _
   have H : w.sum * d / (n + 1) + 1 - w.pair a
              ≤ k.succ * (w.sum * d / (n + 1)) + 1 - k.succ * w.pair a := by
@@ -362,7 +362,7 @@ lemma f_apply_eq_pair'_v_of_nonneg {w : Weight n d} {a : testvecs n d} (h : 0 �
     zify
     refine Int.le_add_one (Int.le_ediv_of_mul_le (by linarith) ?_)
     simp only [mul_comm, h]
-  simp only [f_apply, E, ge_iff_le, pair'_v]
+  simp only [f_apply, E, pair'_v]
   zify [H]
   rw [sub_eq_add_neg (_ * _), neg_mul_eq_mul_neg, Int.add_mul_ediv_left _ _ (by linarith)]
   ring_nf

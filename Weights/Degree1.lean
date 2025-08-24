@@ -52,7 +52,7 @@ def w1 (n : ℕ) [NeZero n] : Weight n 1 := fun j ↦ if j = 0 then 0 else 1
 
 lemma w1_apply (n : ℕ) [NeZero n] (j : Fin n.succ) : w1 n j = if j = 0 then 0 else 1 := rfl
 
-lemma w1_zero (n : ℕ) [NeZero n] : w1 n 0 = 0 := by simp only [w1, eq_self_iff_true, if_true]
+lemma w1_zero (n : ℕ) [NeZero n] : w1 n 0 = 0 := by simp only [w1, if_true]
 
 lemma sum_w1 (n : ℕ) [NeZero n] : (w1 n).sum = n := by
   simp [w1, Weight.sum, Finset.sum_ite, Finset.filter_ne']
@@ -75,7 +75,7 @@ lemma pair_w1 {n : ℕ} [NeZero n] [DecidableEq (testvecs n 1)] (a : testvecs n 
   obtain ⟨k, ha⟩ := (testvecs1 n).2 a
   rw [ha.symm, pair_tw, Nat.sub_self, zero_mul, zero_add, w1_apply]
   by_cases hk : k = 0
-  · simp only [hk, eq_self_iff_true]
+  · simp only [hk]
   · simp only [hk, if_false]
     split_ifs with h'
     · have t := hk (tw_inj n 1 h')
@@ -84,10 +84,10 @@ lemma pair_w1 {n : ℕ} [NeZero n] [DecidableEq (testvecs n 1)] (a : testvecs n 
 
 /-- `w1` is the minimal weight with first entry `0` w.r.t. dominance when `d = 1`. -/
 lemma w1_minimal {n : ℕ} [NeZero n] {w : Weight n 1} (hw : w 0 = 0) : (w1 n) ≤d w := by
-  simp only [dom_iff, f_le_iff, f_apply, Subtype.coe_mk]
+  simp only [dom_iff, f_le_iff, f_apply]
   intro a
   classical
-  simp only [E_w1, ge_iff_le, tsub_le_iff_right, pair_w1]
+  simp only [E_w1, tsub_le_iff_right, pair_w1]
   split_ifs with h
   · rw [← f, h, eval_f_tw, hw]
     simp only [mul_zero, tsub_zero, add_zero]

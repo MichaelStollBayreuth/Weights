@@ -125,7 +125,7 @@ for each dimension `n` and degree `d`; see below.
 
 /-- If `w` and `w'` have the same exponent, then `w' ≤c w` implies that `w` dominates `w'`. -/
 lemma dom_of_gec {w w' : Weight n d} (hE : E w = E w') (h : w' ≤c w) : w ≤d w' := by
-  simp only [dom_iff, f_le_iff, f_apply, SetCoe.forall, Subtype.coe_mk, hE]
+  simp only [dom_iff, f_le_iff, f_apply, SetCoe.forall, hE]
   exact fun a _ ↦ Nat.sub_le_sub_left (pair_le_pair_of_lec _ _ _ h) _
 
 /-- If `w` has first entry `0`, `w'` is balanced, and `E w = E w'`, then `w ≤d w' ↔ w' ≤c w`. -/
@@ -275,7 +275,7 @@ lemma dom_of_dom_perm {w w' : Weight n d} (hw : Monotone w) (hd : w ≤d w') : w
   refine Tuple.bubble_sort_induction hd (fun (g : Weight n d) i j hij₁ hij₂ hwg ↦ ?_)
   let g' := g.comp (Equiv.swap i j)
   change w ≤d g'
-  simp only [dom_iff, f_le_iff, f_apply, SetCoe.forall, Subtype.coe_mk] at hwg ⊢
+  simp only [dom_iff, f_le_iff, f_apply, SetCoe.forall] at hwg ⊢
   have hgg' : g'.comp (Equiv.swap i j) = g := by
     ext
     simp only [Weight.comp, Function.comp_apply, Equiv.swap_apply_self, g']

@@ -118,8 +118,8 @@ lemma eq_or_eq_neg_in_zmod_3 {d a b : ℕ} (hd : (d : ZMod 3) ≠ 0) (hcop : Nat
   have hdd := not_eq_neg_self hd
   by_contra! H
   have help : ∀ {a d : ZMod 3}, -d ≠ d → (a ≠ d ∧ a ≠ -d) → a = 0 := by decide
-  have ha₀ := (ZMod.natCast_zmod_eq_zero_iff_dvd a 3).mp <| help hdd H
-  have hb₀ := (ZMod.natCast_zmod_eq_zero_iff_dvd b 3).mp <| (help hdd H ▸ hab).symm
+  have ha₀ := (ZMod.natCast_eq_zero_iff a 3).mp <| help hdd H
+  have hb₀ := (ZMod.natCast_eq_zero_iff b 3).mp <| (help hdd H ▸ hab).symm
   exact Nat.Prime.not_coprime_iff_dvd.mpr ⟨3, Nat.prime_three, ha₀, hb₀⟩ hcop
 
 /-!
@@ -452,7 +452,7 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
   obtain ⟨⟨s₁, t₁, hcop₁, hSle, hmem₁, hne₁⟩, ⟨s₂, t₂, hcop₂, hSge, hmem₂, hne₂⟩⟩ := H
   rcases eq_or_ne (d : ZMod 3) 0 with hd | hd
   · -- case `d` is divisble by 3
-    obtain ⟨δ, rfl⟩ := (ZMod.natCast_zmod_eq_zero_iff_dvd d 3).mp hd
+    obtain ⟨δ, rfl⟩ := (ZMod.natCast_eq_zero_iff d 3).mp hd
     -- `s₁/t₁` must be left endpoint
     have hs₁t₁ := add_le_delta_of_mem_S_le hcop₁ hSle
     obtain ⟨hs₁a₁, ht₁b₁⟩ := eq_left_of_add_le hI hcop₁ hmem₁ (by linarith) hne₁
@@ -485,7 +485,7 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
       replace H₂ := H₂.trans <| Nat.div_le_self d 2
       linarith only [H₁, H₂]
   have hk₂' : 3 ∣ k₂ := by
-    rw [← ZMod.natCast_zmod_eq_zero_iff_dvd]
+    rw [← ZMod.natCast_eq_zero_iff]
     have : k₂ + t₂ * s₁ = s₂ * t₁ := by
       rw [hks₂, hkt₂, hs₁a₁, ht₁b₁, add_mul _ _ I.b₁, mul_assoc _ I.a₂, I.rel]
       ring
@@ -515,7 +515,7 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
       have H₂ : (s₂ : ZMod 3) = d :=
         (hyp₂.resolve_right (fun _ ↦ False.elim <| lt_irrefl d <| H₁.trans_le (by linarith))).1
       have H₃ : (s₁ : ZMod 3) = d := by
-        have : (k₂ : ZMod 3) = 0 := (ZMod.natCast_zmod_eq_zero_iff_dvd k₂ 3).mpr hk₂'
+        have : (k₂ : ZMod 3) = 0 := (ZMod.natCast_eq_zero_iff k₂ 3).mpr hk₂'
         reduce_mod_3 hks₂
         simpa only [H₂, ← hs₁a₁, one_mul, this, zero_mul, add_zero] using hks₂.symm
       have H₄ : 2 * (I.a₁ + I.b₁) ≤ d := by

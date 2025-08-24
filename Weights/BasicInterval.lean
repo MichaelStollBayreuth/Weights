@@ -87,7 +87,7 @@ lemma a₂_pos : (I : BasicInterval) → 0 < I.a₂
 
 lemma coprime (I : BasicInterval) : Nat.Coprime (I.a₂ * I.b₁) (I.a₁ * I.b₂) := by
   rw [Nat.Coprime, Nat.gcd_eq_iff]
-  simp? says simp only [isUnit_one, IsUnit.dvd, Nat.isUnit_iff, Nat.dvd_one, true_and]
+  simp? says simp only [isUnit_one, IsUnit.dvd, Nat.dvd_one, true_and]
   intros c h₁ h₂
   rw [I.rel] at h₁
   exact Nat.dvd_one.mp <| (Nat.dvd_add_right h₂).mp h₁
