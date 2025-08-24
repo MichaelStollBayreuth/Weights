@@ -102,7 +102,7 @@ variable {n d : ℕ} -- fix dimension and (positive) degree
 -- from which `d` cannot be recovered.
 protected def comp (w : Weight n d) (σ : Equiv.Perm (Fin n.succ)) : Weight n d := w ∘ σ
 
-lemma comp_comp (w : Weight n d) (σ τ : Equiv.Perm (Fin n.succ) ) :
+lemma comp_comp (w : Weight n d) (σ τ : Equiv.Perm (Fin n.succ)) :
     (w.comp σ).comp τ = w.comp (σ * τ) := by
   simp only [Weight.comp, Equiv.Perm.coe_mul]
   rfl
@@ -122,7 +122,7 @@ protected def sum (w : Weight n d) : ℕ := ∑ j, w j
 @[simp] lemma sum_perm (w : Weight n d) (σ : Equiv.Perm (Fin n.succ)) :
     (w.comp σ).sum = w.sum := by
   simp only [Weight.sum]
-  exact Fintype.sum_bijective σ (Equiv.bijective σ) _ _ (fun i ↦ rfl)
+  exact Fintype.sum_bijective σ σ.bijective _ _ (fun i ↦ rfl)
 
 @[simp] lemma sum_smul (w : Weight n d) (k : ℕ) : (k • w).sum = k * w.sum := by
   simp only [Weight.sum, Finset.mul_sum]
@@ -138,23 +138,24 @@ lemma sum_add (w w' : Weight n d) : (w + w').sum = w.sum + w'.sum := by
 /-- The *pairing* of two weights is their scalar product. -/
 def pair (w a : Weight n d) : ℕ := ∑ j, a j * w j
 
+open Finset
+
 lemma mul_le_pair (w a : Weight n d) (k : Fin n.succ) : (a k) * (w k) ≤ w.pair a := by
-  simp [pair]
-  rw [Finset.sum_eq_add_sum_diff_singleton (Finset.mem_univ k)]
+  simp only [pair]
+  rw [sum_eq_add_sum_diff_singleton (mem_univ k)]
   exact Nat.le_add_right _ _
 
 lemma pair_add_left (w w' a : Weight n d) : (w + w').pair a = w.pair a + w'.pair a := by
-  simp only [pair, add_apply, mul_add, Finset.sum_add_distrib]
+  simp only [pair, add_apply, mul_add, sum_add_distrib]
 
 @[simp] lemma pair_smul_left (w a : Weight n d) (k : ℕ) : (k • w).pair a = k * w.pair a := by
   simp_rw [pair, smul_apply, mul_left_comm]
-  exact (Finset.mul_sum Finset.univ (fun i ↦ a i * w i) k).symm
+  exact (mul_sum univ (fun i ↦ a i * w i) k).symm
 
-open Finset in
 /-- If `w` and `a` are both increasing or both decreasing on `{i, j}`,
 then swapping `a i` and `a j` decreases `pair w a`. -/
 lemma pair_swap_le {w a : Weight n d} {i j : Fin n.succ} (hw : w i ≤ w j) (ha : a i ≤ a j) :
-    w.pair (a.comp $ Equiv.swap i j) ≤ w.pair a := by
+    w.pair (a.comp <| Equiv.swap i j) ≤ w.pair a := by
   rcases eq_or_ne i j with h | h
   · simp only [Weight.comp, h, Equiv.swap_self, Equiv.coe_refl, Function.comp_id, le_refl]
   · have haij {k} (hk : k ∈ (univ.erase j).erase i) : (a.comp (Equiv.swap i j)) k = a k := by
@@ -184,7 +185,7 @@ lemma pair_perm' (w a : Weight n d) (σ : Equiv.Perm (Fin n.succ)) :
   simp only [comp_comp, inv_mul_cancel, comp_one]
 
 lemma pair_swap_eq (w a : Weight n d) (i j : Fin n.succ) :
-    pair w (a.comp $ Equiv.swap i j) = pair (w.comp $ Equiv.swap i j) a := by
+    pair w (a.comp <| Equiv.swap i j) = pair (w.comp <| Equiv.swap i j) a := by
   convert (pair_perm' w a _).symm
   simp only [Equiv.swap_inv]
 
@@ -198,15 +199,15 @@ def testvecs (n d : ℕ) : Set (Weight n d) := {w | w.sum = d}
 
 lemma pair_shift (a : testvecs n d) (k : ℕ) : (k • (1 : Weight n d)).pair a = k * d := by
   simp only [pair, smul_apply, one_apply, mul_one]
-  rw [mul_comm k, ← Finset.sum_mul]
+  rw [mul_comm k, ← sum_mul]
   exact congr_arg (· * k) a.2
 
 -- Maybe better use the Finset right away?
 lemma tv_finset :
-    ((Finset.Nat.antidiagonalTuple n.succ d) : Set (Fin n.succ → ℕ)) = testvecs n d := by
+    ((Nat.antidiagonalTuple n.succ d) : Set (Fin n.succ → ℕ)) = testvecs n d := by
   simp only [testvecs]
   ext a
-  simp only [Finset.Nat.mem_antidiagonalTuple, Finset.mem_coe, Weight.sum]
+  simp only [Nat.mem_antidiagonalTuple, mem_coe, Weight.sum]
   rfl
 
 /-- The set of test vectors is closed under permutation. -/
@@ -221,10 +222,8 @@ def tw' (n d : ℕ) (k : Fin n.succ) : Weight n d :=
 
 -- then prove it has sum `d`.
 lemma tw'_sum (n d : ℕ) [NeZero d] (k : Fin n.succ) : (tw' n d k).sum = d := by
-  simp only [Weight.sum, tw', nsmul_eq_mul, Pi.natCast_def, Nat.cast_tsub, Nat.cast_id,
-    Nat.cast_one, Pi.add_apply, Pi.mul_apply, Function.update_apply, zero_apply, mul_ite, mul_one,
-    mul_zero, Finset.sum_add_distrib, Finset.sum_ite_eq', Finset.mem_univ, ite_true]
-  exact Nat.sub_add_cancel (Nat.one_le_of_lt (NeZero.pos d))
+  simpa [Weight.sum, tw', Function.update_apply, sum_add_distrib]
+    using Nat.sub_add_cancel (Nat.one_le_of_lt (NeZero.pos d))
 
 /-- Now we define the test vector `(d-1,0,...,1,...,0)` as an element of `testvecs n d`. -/
 def tw (n d : ℕ) [NeZero d] (k : Fin n.succ) : testvecs n d := ⟨tw' n d k, tw'_sum n d k⟩
@@ -241,10 +240,7 @@ lemma tw_inj (n d : ℕ) [NeZero d] : Function.Injective (tw n d) := by
 
 lemma pair_tw [NeZero d] (w : Weight n d) (k : Fin n.succ) :
     w.pair (tw n d k) = (d - 1) * (w 0) + (w k) := by
-  simp only [pair, tw, tw', nsmul_eq_mul, Pi.natCast_def, Nat.cast_tsub, Nat.cast_id, Nat.cast_one,
-    Pi.add_apply, Pi.mul_apply, Function.update_apply, zero_apply, mul_ite, mul_one, mul_zero,
-    add_mul, ite_mul, zero_mul, one_mul, Finset.sum_add_distrib, Finset.sum_ite_eq',
-    Finset.mem_univ, ite_true]
+  simp [pair, tw, tw', Function.update_apply, add_mul, sum_add_distrib]
 
 /-!
 ### The exponent of a weight
@@ -260,9 +256,9 @@ lemma one_le_E (w : Weight n d) : 1 ≤ w.E := by simp only [E, le_add_iff_nonne
   simp only [E, sum_perm]
 
 @[simp] lemma E_shift (w : Weight n d) (k : ℕ) : (w + k • (1 : Weight n d)).E = w.E + k * d := by
-  simp only [E, Weight.sum, Nat.succ_eq_add_one, add_apply, smul_apply, one_apply, mul_one,
-    Finset.sum_add_distrib, Finset.sum_const, Finset.card_fin, smul_eq_mul]
-  rw [add_mul, mul_assoc, Nat.add_mul_div_left _ _ (Nat.succ_pos n)]
+  simp only [E, Weight.sum, add_apply, smul_apply, one_apply, mul_one,
+    sum_add_distrib, sum_const, card_fin, smul_eq_mul]
+  rw [add_mul, mul_assoc, Nat.add_mul_div_left _ _ n.succ_pos]
   abel
 
 /-!
@@ -271,7 +267,7 @@ lemma one_le_E (w : Weight n d) : 1 ≤ w.E := by simp only [E, le_add_iff_nonne
 
 /-- We associate to a weight `w` a map `testvecs n d → ℕ`.
 (Here we use that `-` is truncated subtraction: `a - b = 0` when `a ≤ b`. ) -/
-def f (w : Weight n d) (a : testvecs n d) : ℕ := w.E - (pair w a)
+def f (w : Weight n d) (a : testvecs n d) : ℕ := w.E - pair w a
 
 -- The set of maps from test vectors to `ℕ` inherits a partial order, which is defined point-wise.
 example : PartialOrder (testvecs n d → ℕ) := inferInstance
@@ -279,10 +275,10 @@ example : PartialOrder (testvecs n d → ℕ) := inferInstance
 @[simp] lemma f_le_iff (w w' : Weight n d) :
     f w ≤ f w' ↔ ∀ a : testvecs n d, f w a ≤ f w' a := Iff.rfl
 
-@[simp] lemma f_apply (w : Weight n d) (a : testvecs n d) : f w a = w.E - (pair w a) := rfl
+@[simp] lemma f_apply (w : Weight n d) (a : testvecs n d) : f w a = w.E - pair w a := rfl
 
 lemma eval_f_tw [NeZero d] (w : Weight n d) (k : Fin n.succ) :
-    f w (tw n d k) = w.E - (d - 1) * (w 0) - (w k) := by
+    f w (tw n d k) = w.E - (d - 1) * w 0 - w k := by
   simp only [f, pair, Nat.sub_sub]
   exact congr_arg (E w - ·) <| pair_tw w k
 
@@ -317,9 +313,9 @@ in the product order. -/
 protected instance Preorder : Preorder (Weight n d) := Preorder.lift f
 
 instance fintype_tv : Fintype (testvecs n d) := by
-  refine Fintype.ofFinset (Finset.Nat.antidiagonalTuple n.succ d) (fun a ↦ ?_)
+  refine Fintype.ofFinset (Nat.antidiagonalTuple n.succ d) (fun a ↦ ?_)
   rw [← tv_finset]
-  simp only [Finset.mem_coe]
+  simp only [mem_coe]
 
 lemma codom_f_well_founded : WellFoundedLT (testvecs n d → ℕ) := inferInstance
 
@@ -335,14 +331,14 @@ infix:50 " ≤c " => @LE.le (Fin _ → ℕ) _
 @[simp] lemma dom_iff (w w' : Weight n d) : w ≤d w' ↔ f w ≤ f w' := Iff.rfl
 
 /-- The vector `v a = d•𝟙 - (n+1)•a` associated to a test vector `a` -/
-def v (a : testvecs n d) : Fin n.succ → ℤ := fun i ↦ d - (n + 1) * (a.val i)
+def v (a : testvecs n d) : Fin n.succ → ℤ := fun i ↦ d - (n + 1) * a.val i
 
 /-- The pairing of a weight vector with an integral vector -/
 def pair' (w : Weight n d) (a : Fin n.succ → ℤ) : ℤ := ∑ j, a j * w j
 
 lemma pair'_v (w : Weight n d) (a : testvecs n d) :
     pair' w (v a) = d * w.sum - (n + 1) * pair w a := by
-  simp [v, pair, pair', Weight.sum, Finset.mul_sum, Finset.sum_sub_distrib, sub_mul, mul_assoc]
+  simp [v, pair, pair', Weight.sum, mul_sum, sum_sub_distrib, sub_mul, mul_assoc]
 
 /-- `f w a` vanishes when `w` and `v a` pair to a negative value. -/
 lemma f_apply_eq_zero_of_neg_pair'_v {w : Weight n d} {a : testvecs n d} (h : pair' w (v a) < 0) :
@@ -351,7 +347,7 @@ lemma f_apply_eq_zero_of_neg_pair'_v {w : Weight n d} {a : testvecs n d} (h : pa
   simp only [f_apply, E, tsub_eq_zero_iff_le]
   zify
   change ((Weight.sum w) * ↑d / (↑n + 1) : ℤ) < ↑(pair w ↑a)
-  apply Int.ediv_lt_of_lt_mul (by linarith)
+  apply Int.ediv_lt_of_lt_mul (by grind)
   simp only [mul_comm, h]
 
 /-- When `w` and `v a` pair nonnegatively, then `f w a = ⌊(pair' w (v a))/(n+1)⌋ + 1`. -/
@@ -360,11 +356,11 @@ lemma f_apply_eq_pair'_v_of_nonneg {w : Weight n d} {a : testvecs n d} (h : 0 �
   simp only [pair'_v, sub_nonneg] at h
   have H : pair w a ≤ w.sum * d / (n + 1) + 1 := by
     zify
-    refine Int.le_add_one (Int.le_ediv_of_mul_le (by linarith) ?_)
+    refine Int.le_add_one (Int.le_ediv_of_mul_le (by grind) ?_)
     simp only [mul_comm, h]
   simp only [f_apply, E, pair'_v]
   zify [H]
-  rw [sub_eq_add_neg (_ * _), neg_mul_eq_mul_neg, Int.add_mul_ediv_left _ _ (by linarith)]
+  rw [sub_eq_add_neg (_ * _), neg_mul_eq_mul_neg, Int.add_mul_ediv_left _ _ (by grind)]
   ring_nf
 
 /-- If the pairing of `w` with `v a` for any test vector `a` such that the `pair w (v a) ≥ 0`
@@ -381,7 +377,7 @@ lemma dom_of_pair_le (w w' : Weight n d)
     zify
     rw [f_apply_eq_pair'_v_of_nonneg H, f_apply_eq_pair'_v_of_nonneg H']
     simp only [add_le_add_iff_right]
-    exact Int.ediv_le_ediv (by linarith) h'
+    exact Int.ediv_le_ediv (by grind) h'
   · push_neg at H
     rw [f_apply_eq_zero_of_neg_pair'_v H]
     exact Nat.zero_le _
@@ -412,18 +408,17 @@ lemma E_dom_eq [NeZero d] {w w' : Weight n d} (hw : w 0 = 0) (hw' : w' 0 = 0) (h
   le_antisymm (E_dom_mono hw hw' h₁) (E_dom_mono hw' hw h₂)
 
 /-- Basic properties of the product order. -/
-@[simp] lemma lec_iff (w w' : Weight n d) : w ≤c w' ↔ ∀ j, w j ≤ w' j := by rfl
- -- `:= rfl` does not work
+@[simp] lemma lec_iff (w w' : Weight n d) : w ≤c w' ↔ ∀ j, w j ≤ w' j := Iff.rfl
 
 lemma lec_antisymm {w w' : Weight n d} (h₁ : w ≤c w') (h₂ : w' ≤c w) : w = w' := by
   ext j
   exact le_antisymm ((lec_iff w w').mp h₁ j) ((lec_iff w' w).mp h₂ j)
 
 lemma sum_le_sum_of_lec (w w' : Weight n d) (h : w ≤c w') : w.sum ≤ w'.sum :=
-  Finset.sum_le_sum (fun j _ ↦ h j)
+  sum_le_sum (fun j _ ↦ h j)
 
 lemma pair_le_pair_of_lec (w w' a : Weight n d) (h : w ≤c w') : w.pair a ≤ w'.pair a :=
-  Finset.sum_le_sum (fun j _ ↦ Nat.mul_le_mul_left _ (h j))
+  sum_le_sum (fun j _ ↦ Nat.mul_le_mul_left _ (h j))
 
 lemma E_lec_mono {w w' : Weight n d} (h : w ≤c w') : w.E ≤ w'.E := by
   simp only [E, add_le_add_iff_right]
