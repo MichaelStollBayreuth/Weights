@@ -131,8 +131,8 @@ lemma add_le_delta_of_mem_S_le {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSle : m
     a + b ≤ δ := by
   obtain ⟨_, i₁, i₂, hi₁, hi₂, hSle⟩ := hSle
   rw [← mul_add, ← mul_assoc, mul_comm 2, mul_assoc] at hi₁
-  replace hi₁ := (mul_le_mul_left (by norm_num)).mp hi₁ -- `i₁ + i₂ ≤ 2 * δ`
-  replace hi₂ := (mul_lt_mul_left (by norm_num)).mp hi₂ -- `δ < i₂`
+  replace hi₁ := (mul_le_mul_iff_right₀ (by norm_num)).mp hi₁ -- `i₁ + i₂ ≤ 2 * δ`
+  replace hi₂ := (mul_lt_mul_iff_right₀ (by norm_num)).mp hi₂ -- `δ < i₂`
   obtain ⟨x₁, Hx₁⟩ : ∃ x : ℕ, (x : ℤ) = 2 * δ - i₁ - i₂ :=
     ⟨2 * δ - i₁ -i₂, by rw [Nat.sub_sub, Int.sub_sub]; norm_cast⟩
   obtain ⟨x₂, Hx₂, Hx₂'⟩ : ∃ x : ℕ, (x : ℤ) = i₂ - δ ∧ 0 < x :=
@@ -194,8 +194,8 @@ lemma le_delta_of_mem_S_ge {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSge : mem_S
     a ≤ δ ∧ b ≤ δ := by
   obtain ⟨_, i₁, i₂, hi₀, hi₁, hi₂, hSge⟩ := hSge
   rw [← mul_add, ← mul_assoc, mul_comm 2, mul_assoc] at hi₁
-  replace hi₁ := (mul_lt_mul_left (by norm_num)).mp hi₁
-  replace hi₂ := (mul_le_mul_left (by norm_num)).mp hi₂
+  replace hi₁ := (mul_lt_mul_iff_right₀ (by norm_num)).mp hi₁
+  replace hi₂ := (mul_le_mul_iff_right₀ (by norm_num)).mp hi₂
   obtain ⟨x₁, Hx₁, Hx₁'⟩ : ∃ x : ℕ, (x : ℤ) = i₁ + i₂ - 2 * δ ∧ 0 < x:=
     ⟨i₁ + i₂ - 2 * δ, by have := hi₁.le; norm_cast, Nat.sub_pos_of_lt hi₁⟩
   obtain ⟨x₂, Hx₂⟩ : ∃ x : ℕ, (x : ℤ) = δ - i₂ := ⟨δ - i₂, by norm_cast⟩
