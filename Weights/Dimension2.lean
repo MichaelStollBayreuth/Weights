@@ -43,14 +43,10 @@ lemma ex_of_fraction {d : ℕ} [NeZero d] {w : Weight 2 d} (h : w.normalized) :
 
 /-- Every vector of the form `of_fraction d a b` is normalized. -/
 lemma normalized_of_of_fraction (d a b : ℕ) [NeZero d] : (of_fraction d a b).normalized := by
-  refine ⟨?_, ?_⟩
+  refine ⟨?_, fun i j hij ↦ ?_⟩
   · simp [of_fraction]
-  · have help : ∀ i j : Fin 3, i ≤ j → i = 0 ∨ (i = j) ∨ (i = 1 ∧ j = 2) := by decide
-    intro i j hij
-    rcases help i j hij with rfl | rfl | ⟨rfl, rfl⟩
-    · simp [of_fraction]
-    · exact le_rfl
-    · simp [of_fraction]
+  · have help : ∀ {i j : Fin 3}, i ≤ j → i = 0 ∨ (i = j) ∨ (i = 1 ∧ j = 2) := by decide
+    rcases help hij with rfl | rfl | ⟨rfl, rfl⟩ <;> simp [of_fraction]
 
 /-- The entries of `of_fraction d a b` are bounded by `a+b`. -/
 lemma of_fraction_le (d : ℕ) [NeZero d] (a b : ℕ) (i : Fin 3) : of_fraction d a b i ≤ a + b :=
@@ -126,7 +122,7 @@ lemma eq_or_eq_neg_in_zmod_3 {d a b : ℕ} (hd : (d : ZMod 3) ≠ 0) (hcop : Nat
 ### Proof of Lemma 4.1
 -/
 
-/-- If `d = 3*δ` is divisble by `3` and `a/b ∈ S_≤` in lowest terms, then `a + b ≤ δ`. -/
+/-- If `d = 3*δ` is divisible by `3` and `a/b ∈ S_≤` in lowest terms, then `a + b ≤ δ`. -/
 lemma add_le_delta_of_mem_S_le {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSle : mem_S_le (3 * δ) a b) :
     a + b ≤ δ := by
   obtain ⟨_, i₁, i₂, hi₁, hi₂, hSle⟩ := hSle
@@ -149,7 +145,7 @@ lemma add_le_delta_of_mem_S_le {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSle : m
       -- `hSle : a = 0 ∨ x₂ = 0`
       rcases hSle with rfl | rfl
       · exact Nat.zero_le _
-      · exact False.elim <| Nat.lt_irrefl _ Hx₂'
+      · exact Hx₂'.false.elim
     exact Nat.le_of_dvd (Nat.pos_of_ne_zero H) <| hcop.dvd_of_dvd_mul_left <|
             Dvd.intro (Int.toNat x₂) hSle
   have hb : b ≤ x₂ :=
@@ -189,7 +185,7 @@ lemma add_le_of_mem_S_le {d a b : ℕ} (hd : (d : ZMod 3) ≠ 0) (hcop : Nat.Cop
     exact Nat.le_div_two_iff_mul_two_le.mpr this
   · exact Or.inl ⟨had, (Nat.le_mul_of_pos_left _ hm₀).trans hx⟩
 
-/-- If `d = 3*δ` is divisble by `3` and `a/b ∈ S_≥` in lowest terms, then `a ≤ δ` and `b ≤ δ`. -/
+/-- If `d = 3*δ` is divisible by `3` and `a/b ∈ S_≥` in lowest terms, then `a ≤ δ` and `b ≤ δ`. -/
 lemma le_delta_of_mem_S_ge {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSge : mem_S_ge (3 * δ) a b) :
     a ≤ δ ∧ b ≤ δ := by
   obtain ⟨_, i₁, i₂, hi₀, hi₁, hi₂, hSge⟩ := hSge
@@ -213,7 +209,7 @@ lemma le_delta_of_mem_S_ge {δ a b : ℕ} (hcop : Nat.Coprime a b) (hSge : mem_S
       -- `hSge : b = 0 ∨ x₁ = 0`
       rcases hSge with rfl | rfl
       · exact Nat.zero_le _
-      · exact False.elim <| Nat.lt_irrefl _ Hx₁'
+      · exact Hx₁'.false.elim
     exact Nat.le_of_dvd (Nat.pos_of_ne_zero H) <| hcop.symm.dvd_of_dvd_mul_left <|
             Dvd.intro x₁ hSge.symm
   exact ⟨ha.trans hx₁, hb.trans hx₂⟩
@@ -301,10 +297,9 @@ lemma dom_of_mem_interior_left (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInterv
       exact H (neg_eq_iff_add_eq_zero.mp h.symm).symm.le
   calc
     _ = 1 * pair' (of_fraction d I.a₁ I.b₁) (v i) + 0 * pair' (of_fraction d I.a₂ I.b₂) (v i) := by
-        rw [one_mul, zero_mul, add_zero]
-    _ ≤ k₁ * pair' (of_fraction d I.a₁ I.b₁) (v i) + k₂ * pair' (of_fraction d I.a₂ I.b₂) (v i) :=
-        add_le_add (Int.mul_le_mul_of_nonneg_right (by exact_mod_cast hk₁) hi)
-                   (Int.mul_le_mul_of_nonneg_right (by exact_mod_cast hk₂.le) hi')
+        simp
+    _ ≤ k₁ * pair' (of_fraction d I.a₁ I.b₁) (v i) + k₂ * pair' (of_fraction d I.a₂ I.b₂) (v i) := by
+        gcongr <;> bound
     _ = _ := by
         rw [h₁, h₂, pair'_of_fraction_add, Pi.add_apply, pair'_of_fraction_mul,
             pair'_of_fraction_mul]
@@ -355,10 +350,9 @@ lemma dom_of_mem_interior_right (d : ℕ) [NeZero d] {a b : ℕ} {I : BasicInter
       exact H (eq_neg_iff_add_eq_zero.mp h.symm).symm.le
   calc
     _ = 0 * pair' (of_fraction d I.a₁ I.b₁) (v i) + 1 * pair' (of_fraction d I.a₂ I.b₂) (v i) := by
-        rw [one_mul, zero_mul, zero_add]
-    _ ≤ k₁ * pair' (of_fraction d I.a₁ I.b₁) (v i) + k₂ * pair' (of_fraction d I.a₂ I.b₂) (v i) :=
-        add_le_add (Int.mul_le_mul_of_nonneg_right (by exact_mod_cast hk₁.le) hi')
-                   (Int.mul_le_mul_of_nonneg_right (by exact_mod_cast hk₂) hi)
+        simp
+    _ ≤ k₁ * pair' (of_fraction d I.a₁ I.b₁) (v i) + k₂ * pair' (of_fraction d I.a₂ I.b₂) (v i) := by
+        gcongr <;> bound
     _ = _ := by
         rw [h₁, h₂, pair'_of_fraction_add, Pi.add_apply, pair'_of_fraction_mul,
             pair'_of_fraction_mul]
@@ -371,8 +365,7 @@ lemma dom_of_proportional (d : ℕ) [NeZero d] {a b a' b' : ℕ} (hab : a ≠ 0 
     hab.elim (fun haz ↦ left_ne_zero_of_mul <| ha ▸ haz)
              (fun hbz ↦ left_ne_zero_of_mul <| hb ▸ hbz)
   have hm : (1 : ℤ) ≤ m := Int.toNat_le.mp <| Nat.one_le_iff_ne_zero.mpr hmz
-  apply dom_of_pair_le
-  intro i hi
+  refine dom_of_pair_le _ _ fun i hi ↦ ?_
   simp_rw [pair'_of_fraction] at hi ⊢
   rw [ha, hb, Nat.cast_mul, Nat.cast_mul, mul_assoc, mul_assoc, ← mul_add]
   exact le_mul_of_one_le_left hi hm
@@ -404,7 +397,7 @@ lemma condition_iff_weaker_le (d : ℕ) [NeZero d] (I : BasicInterval) :
     (∀ (a b : ℕ), Nat.Coprime a b → mem_S_le d a b → mem a b I → a * I.b₂ = b * I.a₂) ↔
       ∀ (a b : ℕ), mem_S_le d a b → mem a b I → a * I.b₂ = b * I.a₂ := by
   refine ⟨fun H a b h₁ h₂ ↦ ?_, fun H a b _ ↦ H a b⟩
-  rcases Nat.eq_zero_or_pos (Nat.gcd a b) with h₀|  h₀
+  rcases Nat.eq_zero_or_pos (Nat.gcd a b) with h₀ | h₀
   · obtain ⟨rfl, rfl⟩ := Nat.gcd_eq_zero_iff.mp h₀
     simp only [zero_mul]
   obtain ⟨g, a', b', hg₁, hcop, rfl, rfl⟩ := Nat.exists_coprime' h₀; clear h₀
@@ -460,7 +453,7 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
     obtain ⟨hs₁, ht₂⟩ := le_delta_of_mem_S_ge hcop₂ hSge
     obtain ⟨hs₂a₂, ht₂b₂⟩ := eq_right_of_add_le hI hcop₂ hmem₂ (by linarith) hne₂
     -- now obtain contradiction
-    refine False.elim <| Nat.lt_irrefl (3 * δ) ?_
+    refine (Nat.lt_irrefl (3 * δ) ?_).elim
     calc
       3 * δ < I.a₁ + I.a₂ + I.b₁ + I.b₂     := hI.2.2
       _     = (I.a₁ + I.b₁) + (I.a₂ + I.b₂) := by abel
@@ -502,18 +495,16 @@ lemma condition_of_feasible {d : ℕ} [NeZero d] {I : BasicInterval} (hI : I.fea
     simp only [zero_mul, zero_add] at hks₂ hkt₂
     rw [hks₂, hkt₂] at hcop₂
     linarith only [Nat.eq_one_of_coprime_mul_mul hcop₂, hk₂]
-  have : k₁ = 1 ∨ 2 ≤ k₁ := by rwa [eq_comm, Nat.succ_le, ← le_iff_eq_or_lt]
+  have : k₁ = 1 ∨ 2 ≤ k₁ := by grind
   have hI₂ := hI.2.2
   have hbd' : 2 * d < s₂ + t₂ := by
     rcases this with rfl | hk₁
-    · -- case `k₁ = 1` (there more involved one)
+    · -- case `k₁ = 1` (the more involved one)
       have hs₂bd : 1 * I.a₁ + 3 * I.a₂ ≤ s₂ := by rw [hks₂]; gcongr
       have ht₂bd : 1 * I.b₁ + 3 * I.b₂ ≤ t₂ := by rw [hkt₂]; gcongr
       have H₁ : d < s₂ + t₂ := by linarith
-      -- the following is needed for `linarith` below
-      have Hd : d / 2 + d / 2 ≤ d := by rw [← two_mul]; exact Nat.mul_div_le d 2
       have H₂ : (s₂ : ZMod 3) = d :=
-        (hyp₂.resolve_right (fun _ ↦ False.elim <| lt_irrefl d <| H₁.trans_le (by linarith))).1
+        (hyp₂.resolve_right (fun _ ↦ False.elim <| lt_irrefl d <| H₁.trans_le (by grind))).1
       have H₃ : (s₁ : ZMod 3) = d := by
         have : (k₂ : ZMod 3) = 0 := (ZMod.natCast_eq_zero_iff k₂ 3).mpr hk₂'
         reduce_mod_3 hks₂
@@ -541,8 +532,7 @@ theorem dom_by_max_le_d (d : ℕ) [NeZero d] (a b : ℕ) :
     exact ⟨a, b, h, Eq.le rfl⟩
   · -- case `a + b > d`. Get feasible interval that contains `a/b`.
     obtain ⟨I, hI, hIab⟩ := mem_feasible d a b
-    have hab : a ≠ 0 ∨ b ≠ 0 := by by_contra! hab; linarith
-    rcases dom_of_mem d hab hIab (condition_of_feasible hI) with H | H
+    rcases dom_of_mem d (by grind) hIab (condition_of_feasible hI) with H | H
     · exact ⟨I.a₁, I.b₁, hI.1, H⟩
     · exact ⟨I.a₂, I.b₂, hI.2.1, H⟩
 
