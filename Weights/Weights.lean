@@ -299,9 +299,10 @@ lemma f_le_mul (w : Weight n d) (k : ℕ) : w.f ≤ (k.succ • w).f := by
       exact Nat.zero_le _
     · rw [← tsub_add_eq_add_tsub hle, ← tsub_add_eq_add_tsub (mul_le_mul' le_rfl hle),
           ← Nat.mul_sub_left_distrib]
-      exact add_le_add_right (Nat.le_mul_of_pos_left _ (Nat.succ_pos k)) 1
-  refine H.trans <| Nat.sub_le_sub_right (add_le_add_right ?_ _) _
+      lia
+  grw [H]
   rw [mul_assoc]
+  gcongr
   exact Nat.mul_div_le_mul_div_assoc ..
 
 /-!
@@ -460,7 +461,7 @@ lemma sorted_is_Monotone (w : Weight n d) : Monotone w.sorted := Tuple.monotone_
 lemma normalized_of_sorted {w : Weight n d} (hw : w 0 = 0) : w.sorted.normalized := by
   have hm := sorted_is_Monotone w
   have h₁ : w.sorted ((Tuple.sort w)⁻¹ 0) = 0 := by
-    rwa [sorted, Weight.comp, Function.comp_apply, Equiv.Perm.apply_inv_self]
+    rwa [sorted, Weight.comp, Function.comp_apply, Equiv.Perm.inv_def, Equiv.apply_symm_apply]
   exact ⟨Nat.eq_zero_of_le_zero (le_of_le_of_eq (hm (Fin.zero_le _)) h₁), sorted_is_Monotone w⟩
 
 end Weight
