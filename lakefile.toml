@@ -10,7 +10,7 @@ autoImplicit = false
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "v4.24.0"
+rev = "v4.25.0"
 
 [[lean_lib]]
 name = "Weights"
