@@ -110,7 +110,7 @@ lemma w1_unique {n : ℕ} [NeZero n] {w : Weight n 1} (hw : w 0 = 0)
   rw [sum_w1] at hsum
   rw [E] at hE
   simp [Nat.div_eq_zero_iff] at hE
-  have hn : w.sum = n := Nat.eq_of_le_of_lt_succ hsum hE
+  have hn : w.sum = n := Nat.eq_of_le_of_lt_succ hsum (Nat.lt_add_one_iff.mpr hE)
   refine ((Finset.sum_eq_sum_iff_of_le (fun k _ ↦ hc₁ k)).mp ?_ j (Finset.mem_univ j)).symm
   rw [Weight.sum] at hn
   rw [hn]

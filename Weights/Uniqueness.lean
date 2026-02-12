@@ -345,7 +345,7 @@ def M (n d : ℕ) [NeZero d] : Set (Weight n d) :=
 lemma M_is_complete [NeZero d] : complete_set (M n d) := by
   intro w
   refine WellFoundedLT.induction (α := Weight n d)
-    (C := fun w ↦ normalized w → ∃ w', w' ∈ M n d ∧ w' ≤ w) w (fun w₁ h ↦ ?_)
+    (motive := fun w ↦ normalized w → ∃ w', w' ∈ M n d ∧ w' ≤ w) w (fun w₁ h ↦ ?_)
   intro hw₁n
   by_cases hw₁ : ∃ w₂ : Weight n d, w₂.normalized ∧ w₂ < w₁
   · obtain ⟨w₂, hw₂n, hw₂⟩ := hw₁
