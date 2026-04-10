@@ -78,7 +78,7 @@ lemma trunc_dom (w : Weight n d) : w.trunc ≤d w := by
   by_cases h : ∃ j, w.E < w j ∧ 0 < a.1 j
   · rw [Nat.sub_eq_zero_of_le (trunc_pair_lb w a h)]
     exact Nat.zero_le _
-  · push_neg at h
+  · push Not at h
     rw [trunc_pair_eq_pair w a h]
 
 /-- `w` dominates `trunc w` (and so they dominate each other) when `E (trunc w) = E w`. -/
@@ -148,7 +148,7 @@ lemma exists_balanced_ltc (w : Weight n d) (hb : ¬ w.balanced)
     w'.E = w.trunc.E ∧ w'.balanced ∧ w.trunc ≤c w' ∧ w.trunc ≠ w' := by
   intro w'
   simp only [balanced] at hb
-  push_neg at hb
+  push Not at hb
   obtain ⟨j, hj⟩ := hb
   have hsum' : w'.sum = w.trunc.sum + 1 := by
     simp only [Weight.sum, Function.update_apply, trunc_apply, Finset.sum_ite, Finset.filter_eq',
@@ -351,12 +351,12 @@ lemma M_is_complete [NeZero d] : complete_set (M n d) := by
   · obtain ⟨w₂, hw₂n, hw₂⟩ := hw₁
     obtain ⟨w', hw'₁, hw'₂⟩ := h w₂ hw₂ hw₂n
     exact ⟨w', hw'₁, hw'₂.trans <| le_of_lt hw₂⟩
-  · push_neg at hw₁
+  · push Not at hw₁
     refine ⟨w₁, ⟨hw₁n, fun w' hw' h' ↦ ?_⟩, le_refl w₁⟩
     by_contra hf
     have := hw₁ w' hw'
     rw [lt_iff_le_not_ge] at this
-    push_neg at this
+    push Not at this
     exact hf (this h')
 
 /-- If a normalized weight `w` dominates a weight `w' ∈ M n d`, then `w = w'`. -/

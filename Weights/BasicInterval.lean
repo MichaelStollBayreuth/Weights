@@ -142,7 +142,7 @@ lemma mem_left_or_mem_right {a b : ℕ} (I : BasicInterval) (h : mem a b I) :
   · exact Or.inl hl
   · unfold mem at h hl ⊢
     rw [@not_and_or] at hl
-    rcases hl with hl | hl <;> push_neg at hl <;> simp at hl ⊢
+    rcases hl with hl | hl <;> push Not at hl <;> simp at hl ⊢
     · exact Or.inl ⟨h.1, by linarith⟩
     · refine Or.inr ⟨hl.le, h.2⟩
 

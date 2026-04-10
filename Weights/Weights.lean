@@ -142,7 +142,7 @@ open Finset
 
 lemma mul_le_pair (w a : Weight n d) (k : Fin n.succ) : (a k) * (w k) ≤ w.pair a := by
   simp only [pair]
-  rw [sum_eq_add_sum_diff_singleton (mem_univ k)]
+  rw [sum_eq_add_sum_diff_singleton k _ (by simp)]
   exact Nat.le_add_right _ _
 
 lemma pair_add_left (w w' a : Weight n d) : (w + w').pair a = w.pair a + w'.pair a := by
@@ -316,6 +316,7 @@ protected instance Preorder : Preorder (Weight n d) := Preorder.lift f
 instance fintype_tv : Fintype (testvecs n d) := by
   refine Fintype.ofFinset (Nat.antidiagonalTuple n.succ d) (fun a ↦ ?_)
   rw [← tv_finset]
+  set_option backward.isDefEq.respectTransparency false in
   simp only [mem_coe]
 
 lemma codom_f_well_founded : WellFoundedLT (testvecs n d → ℕ) := inferInstance
@@ -379,7 +380,7 @@ lemma dom_of_pair_le (w w' : Weight n d)
     rw [f_apply_eq_pair'_v_of_nonneg H, f_apply_eq_pair'_v_of_nonneg H']
     simp only [add_le_add_iff_right]
     exact Int.ediv_le_ediv (by grind) h'
-  · push_neg at H
+  · push Not at H
     rw [f_apply_eq_zero_of_neg_pair'_v H]
     exact Nat.zero_le _
 
