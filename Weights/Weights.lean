@@ -320,8 +320,7 @@ protected instance Preorder : Preorder (Weight n d) := Preorder.lift f
 instance fintype_tv : Fintype (testvecs n d) := by
   refine Fintype.ofFinset (Nat.antidiagonalTuple n.succ d) (fun a ↦ ?_)
   rw [← tv_finset]
-  set_option backward.isDefEq.respectTransparency false in
-  simp only [mem_coe]
+  exact mem_coe.symm
 
 lemma codom_f_well_founded : WellFoundedLT (testvecs n d → ℕ) := inferInstance
 
