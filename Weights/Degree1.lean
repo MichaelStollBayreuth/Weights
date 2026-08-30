@@ -92,7 +92,7 @@ lemma w1_minimal {n : ℕ} [NeZero n] {w : Weight n 1} (hw : w 0 = 0) : (w1 n) �
   · rw [← f, h, eval_f_tw, hw]
     simp only [mul_zero, tsub_zero, add_zero]
     exact one_le_E w
-  · simp only [le_add_iff_nonneg_left, zero_le']
+  · simp only [le_add_iff_nonneg_left, zero_le]
 
 /-- If `w` is minimal w.r.t. dominance for `d = 1` and has first entry `0`, then `w = w1`. -/
 lemma w1_unique {n : ℕ} [NeZero n] {w : Weight n 1} (hw : w 0 = 0)

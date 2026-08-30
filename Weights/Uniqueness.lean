@@ -173,7 +173,7 @@ lemma exists_balanced_ltc (w : Weight n d) (hb : ¬ w.balanced)
   · -- show `w.trunc ≤c w'`
     simp only [w', Function.update_apply]
     by_cases hjk : j = k <;>
-      simp only [hjk, (Nat.eq_zero_of_le_zero (le_of_le_of_eq (trunc_lec w k) hk)), zero_le']
+      simp only [hjk, (Nat.eq_zero_of_le_zero (le_of_le_of_eq (trunc_lec w k) hk)), zero_le]
     · exact Nat.le_refl (trunc w j)
   · -- show `w.trunc ≠ w'`.
     rw [hf, left_eq_add] at hsum'

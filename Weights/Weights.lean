@@ -140,10 +140,8 @@ def pair (w a : Weight n d) : ℕ := ∑ j, a j * w j
 
 open Finset
 
-lemma mul_le_pair (w a : Weight n d) (k : Fin n.succ) : (a k) * (w k) ≤ w.pair a := by
-  simp only [pair]
-  rw [sum_eq_add_sum_diff_singleton k _ (by simp)]
-  exact Nat.le_add_right _ _
+lemma mul_le_pair (w a : Weight n d) (k : Fin n.succ) : a k * w k ≤ w.pair a :=
+  single_le_sum (f := fun j ↦ a j * w j) (fun _ _ ↦ Nat.zero_le _) (mem_univ k)
 
 lemma pair_add_left (w w' a : Weight n d) : (w + w').pair a = w.pair a + w'.pair a := by
   simp only [pair, add_apply, mul_add, sum_add_distrib]
@@ -250,7 +248,7 @@ lemma pair_tw [NeZero d] (w : Weight n d) (k : Fin n.succ) :
 (Note that we use that `/` is the quotient of division with remainder on `ℕ`.) -/
 def E (w : Weight n d) : ℕ := w.sum * d / (n + 1) + 1
 
-lemma one_le_E (w : Weight n d) : 1 ≤ w.E := by simp only [E, le_add_iff_nonneg_left, zero_le']
+lemma one_le_E (w : Weight n d) : 1 ≤ w.E := by simp only [E, le_add_iff_nonneg_left, zero_le]
 
 @[simp] lemma E_perm (w : Weight n d) (σ : Equiv.Perm (Fin n.succ)) : (w.comp σ).E = w.E := by
   simp only [E, sum_perm]
