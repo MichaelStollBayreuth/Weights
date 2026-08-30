@@ -5,6 +5,12 @@ import Mathlib.Data.Fin.Tuple.BubbleSortInduction
 import Mathlib.Data.DFinsupp.WellFounded
 import Weights.Auxiliary
 
+-- `Weight n d` is a semireducible alias for `Fin n.succ → ℕ`; it must not be reducible, or the
+-- product order would be found for `Weight n d` in place of the dominance order defined below.
+-- Since Lean v4.33 the stricter type-correctness check then rejects the application `w j` at
+-- `implicit` transparency, which blocks `rw`/`simp` on nearly every statement in this project.
+set_option backward.isDefEq.respectTransparency.types false
+
 /-!
 # Formalize some parts of the theory of weights
 
@@ -211,7 +217,7 @@ lemma tv_finset :
 /-- The set of test vectors is closed under permutation. -/
 lemma testvecs_perm {a : Weight n d} (ha : a ∈ testvecs n d) (σ : Equiv.Perm (Fin n.succ)) :
     a.comp σ ∈ testvecs n d := by
-  simpa only [testvecs, sum_perm, Set.mem_setOf_eq]
+  simpa only [testvecs, sum_perm, Set.mem_ofPred_eq]
 
 /-- The test vector `(d-1,0,...,1,...,0)` (`1` in position `k`),
 for `k = 0`, this is `(d,0,...,0)`. First we define it as a weight. -/

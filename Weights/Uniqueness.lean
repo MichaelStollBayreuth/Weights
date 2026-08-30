@@ -1,6 +1,9 @@
 import Weights.Weights
 import Mathlib.Tactic
 
+-- See `Weights.Weights` for why this option is needed.
+set_option backward.isDefEq.respectTransparency.types false
+
 namespace Weight
 
 open BigOperators
