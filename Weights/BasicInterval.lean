@@ -1,4 +1,8 @@
-import Weights.Uniqueness
+module
+
+import Mathlib.Tactic
+
+@[expose] public section
 
 namespace Weight
 

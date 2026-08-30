@@ -1,4 +1,5 @@
-import Mathlib.Algebra.Order.Ring.Nat
+module
+
 import Mathlib.Data.Nat.GCD.Basic
 
 /-!
@@ -7,6 +8,8 @@ import Mathlib.Data.Nat.GCD.Basic
 In this file we collect some results that we need, but seem to be missing
 from Mathlib.
 -/
+
+@[expose] public section
 
 namespace Nat
 

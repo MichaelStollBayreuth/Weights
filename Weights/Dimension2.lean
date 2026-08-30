@@ -1,8 +1,15 @@
-import Weights.Uniqueness
-import Weights.BasicInterval
+module
+
+public import Weights.Uniqueness
+public import Weights.BasicInterval
+public import Mathlib.Data.ZMod.Basic
+
+import Mathlib.Tactic
 
 -- See `Weights.Weights` for why this option is needed.
 set_option backward.isDefEq.respectTransparency.types false
+
+@[expose] public section
 
 namespace Weight
 

@@ -1,7 +1,13 @@
-import Weights.Uniqueness
+module
+
+public import Weights.Uniqueness
+
+import Mathlib.Tactic
 
 -- See `Weights.Weights` for why this option is needed.
 set_option backward.isDefEq.respectTransparency.types false
+
+@[expose] public section
 
 namespace Weight
 

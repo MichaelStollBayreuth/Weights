@@ -1,9 +1,10 @@
-import Mathlib.Data.Fin.Tuple.NatAntidiagonal
-import Mathlib.Algebra.GCDMonoid.Finset
+module
+
+public import Mathlib.Data.Fin.Tuple.NatAntidiagonal
+public import Mathlib.Data.Fin.Tuple.BubbleSortInduction
+public import Weights.Auxiliary
+
 import Mathlib.RingTheory.Int.Basic
-import Mathlib.Data.Fin.Tuple.BubbleSortInduction
-import Mathlib.Data.DFinsupp.WellFounded
-import Weights.Auxiliary
 
 -- `Weight n d` is a semireducible alias for `Fin n.succ → ℕ`; it must not be reducible, or the
 -- product order would be found for `Weight n d` in place of the dominance order defined below.
@@ -60,6 +61,8 @@ The second main result is a proof of **Theorem 1.6** in the paper, which says th
 in the case $n = 2$, the weights in a minimal complete set of normalized weights
 have entries bounded by the degree $d$. See `Weight.dom_by_max_le_d` and `Weight.theorem_1_6`.
 -/
+
+@[expose] public section
 
 /-!
 ## Definitions and first properties
