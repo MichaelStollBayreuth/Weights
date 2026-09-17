@@ -327,7 +327,7 @@ instance fintype_tv : Fintype (testvecs n d) := by
 
 lemma codom_f_well_founded : WellFoundedLT (testvecs n d → ℕ) := inferInstance
 
-instance well_founded : WellFoundedLT (Weight n d) := InvImage.wf f codom_f_well_founded
+instance wellFoundedLT : WellFoundedLT (Weight n d) := InvImage.wf f codom_f_well_founded
 
 /-- Introduce notation `≤d` for domination -/
 infix:50 " ≤d " => @LE.le (Weight _ _) _
