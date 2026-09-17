@@ -61,7 +61,7 @@ def w1 (n : ℕ) [NeZero n] : Weight n 1 := fun j ↦ if j = 0 then 0 else 1
 
 lemma w1_apply (n : ℕ) [NeZero n] (j : Fin n.succ) : w1 n j = if j = 0 then 0 else 1 := rfl
 
-lemma w1_zero (n : ℕ) [NeZero n] : w1 n 0 = 0 := by simp only [w1, if_true]
+lemma w1_zero (n : ℕ) [NeZero n] : w1 n 0 = 0 := by simp only [w1, ite_true]
 
 lemma sum_w1 (n : ℕ) [NeZero n] : (w1 n).sum = n := by
   simp [w1, Weight.sum, Finset.sum_ite, Finset.filter_ne']
@@ -85,7 +85,7 @@ lemma pair_w1 {n : ℕ} [NeZero n] [DecidableEq (testvecs n 1)] (a : testvecs n 
   rw [ha.symm, pair_tw, Nat.sub_self, zero_mul, zero_add, w1_apply]
   by_cases hk : k = 0
   · simp only [hk]
-  · simp only [hk, if_false]
+  · simp only [hk, ite_false]
     split_ifs with h'
     · have t := hk (tw_inj n 1 h')
       tauto

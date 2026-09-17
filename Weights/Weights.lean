@@ -242,7 +242,7 @@ lemma tw_inj (n d : ℕ) [NeZero d] : Function.Injective (tw n d) := by
     Subtype.mk.injEq] at h
   replace h := congr_fun h k
   simp only [Pi.add_apply, Pi.mul_apply, Function.update_apply, zero_apply, mul_ite, mul_one,
-    mul_zero, if_true, add_right_inj, ite_eq_left_iff, zero_ne_one] at h
+    mul_zero, ite_true, add_right_inj, ite_eq_left_iff, zero_ne_one] at h
   exact (of_not_not h).symm
 
 lemma pair_tw [NeZero d] (w : Weight n d) (k : Fin n.succ) :
@@ -327,8 +327,7 @@ instance fintype_tv : Fintype (testvecs n d) := by
 
 lemma codom_f_well_founded : WellFoundedLT (testvecs n d → ℕ) := inferInstance
 
-instance well_founded : IsWellFounded (Weight n d) (· < ·) :=
-  ⟨InvImage.wf f codom_f_well_founded.1⟩
+instance well_founded : WellFoundedLT (Weight n d) := InvImage.wf f codom_f_well_founded
 
 /-- Introduce notation `≤d` for domination -/
 infix:50 " ≤d " => @LE.le (Weight _ _) _

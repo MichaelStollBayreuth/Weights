@@ -194,7 +194,7 @@ lemma index_exists {w : Weight n d} (hw : w.normalized) :
     ∃ k, w k = 0 ∧ Monotone (Function.update w k 1) := by
   let P : ℕ → Prop := (fun i ↦ if hi : i < n.succ then w ⟨i, hi⟩ = 0 else False)
   have hP : ∀ m (hm : m < n.succ), P m ↔ w ⟨m, hm⟩ = 0 :=
-    fun  m hm ↦ by simp only [hm, dif_pos, P]
+    fun  m hm ↦ by simp only [hm, dite_eq_left, P]
   let m : Fin n.succ := ⟨Nat.findGreatest P n, Nat.lt_succ_of_le (Nat.findGreatest_le n)⟩
   have hm : w m = 0 := by
     have h₀ : P 0 := by rw [hP 0 (Nat.zero_lt_succ n)]; exact hw.1
@@ -236,7 +236,7 @@ lemma balanced_of_min' [NeZero d] {w : Weight n d} (hw : w.normalized)
   intro i j hij
   simp only [Function.update_apply, trunc_apply]
   rcases eq_or_ne i k with hi | hi <;> rcases eq_or_ne j k with hj | hj <;> simp [hi, hj]
-  · have : w j = Function.update w k 1 j := by simp only [Function.update_apply, hj, if_false]
+  · have : w j = Function.update w k 1 j := by simp only [Function.update_apply, hj, ite_false]
     refine ⟨?_, one_le_E w⟩
     rw [(Function.update_self k 1 w).symm, this]
     exact hk₂ (le_of_eq_of_le hi.symm hij)
